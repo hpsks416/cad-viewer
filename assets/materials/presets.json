@@ -1,0 +1,8 @@
+{
+  "default": { "metalness": 0.35, "roughness": 0.42 },
+  "patterns": [
+    { "match": ".*(shaft|bolt|screw|gear|bearing|motor).*", "material": { "metalness": 0.9, "roughness": 0.25 } },
+    { "match": ".*(wheel|tire|tyre|rubber).*", "material": { "metalness": 0.0, "roughness": 0.9 } },
+    { "match": ".*(cover|shell|bracket|plate).*", "material": { "metalness": 0.15, "roughness": 0.55 } }
+  ]
+}

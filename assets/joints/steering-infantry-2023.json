@@ -1,0 +1,474 @@
+{
+  "joints": [
+    {
+      "node": "A014",
+      "name": "A014 云台-总装",
+      "type": "revolute",
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "pivot": [
+        -30.2026,
+        178.2,
+        1.9697
+      ],
+      "min": -180,
+      "max": 180,
+      "default": 0
+    }
+  ],
+  "candidates": [
+    {
+      "id": "A001",
+      "name": "Zone 2023 Rudder Wheel Infantry Total 1.0",
+      "name_zh": "2023分区赛舵轮步兵总装1.0"
+    },
+    {
+      "id": "A002",
+      "name": "Threshold Total",
+      "name_zh": "底盘-总装"
+    },
+    {
+      "id": "A003",
+      "name": "Dial Drive Total",
+      "name_zh": "拨盘-总装"
+    },
+    {
+      "id": "A004",
+      "name": "Dial Up Wheeled Up",
+      "name_zh": "拨盘-拨轮装配"
+    },
+    {
+      "id": "A005",
+      "name": "Wheels Active Wheels Total",
+      "name_zh": "轮组-主动轮组总装"
+    },
+    {
+      "id": "A006",
+      "name": "Wheels Active Wheels Total",
+      "name_zh": "轮组-主动轮组总装"
+    },
+    {
+      "id": "A007",
+      "name": "Combination Armour",
+      "name_zh": "组合装甲"
+    },
+    {
+      "id": "A008",
+      "name": "Combination Armour",
+      "name_zh": "组合装甲"
+    },
+    {
+      "id": "A009",
+      "name": "Combination Armour",
+      "name_zh": "组合装甲"
+    },
+    {
+      "id": "A010",
+      "name": "Combination Armour",
+      "name_zh": "组合装甲"
+    },
+    {
+      "id": "A011",
+      "name": "Yaw Total",
+      "name_zh": "yaw-总装"
+    },
+    {
+      "id": "A012",
+      "name": "Wheels Active Wheels Total",
+      "name_zh": "轮组-主动轮组总装"
+    },
+    {
+      "id": "A013",
+      "name": "Wheels Active Wheels Total",
+      "name_zh": "轮组-主动轮组总装"
+    },
+    {
+      "id": "A014",
+      "name": "Cloud Plaque Total",
+      "name_zh": "云台-总装"
+    },
+    {
+      "id": "A015",
+      "name": "Cloudtop Pitch Axle Structure",
+      "name_zh": "云台-pitch轴上结构"
+    },
+    {
+      "id": "A016",
+      "name": "Launch Module Second Stage Blast Optimization",
+      "name_zh": "发射模组-二级拨弹优化"
+    },
+    {
+      "id": "A017",
+      "name": "Grid Wheel Assembly",
+      "name_zh": "摩擦轮装配"
+    },
+    {
+      "id": "A018",
+      "name": "Grid Wheel Assembly",
+      "name_zh": "摩擦轮装配"
+    },
+    {
+      "id": "A019",
+      "name": "2 Current Pitch Axis Structure For Assembly",
+      "name_zh": "装配体2^云台-pitch轴上结构"
+    },
+    {
+      "id": "A020",
+      "name": "1 Ray Cloud Pitch Axle Structure For Assembly",
+      "name_zh": "装配体1^云台-pitch轴上结构"
+    },
+    {
+      "id": "A021",
+      "name": "Camera",
+      "name_zh": "摄像头装"
+    },
+    {
+      "id": "A022",
+      "name": "The J Module Planner Cloud Platoon",
+      "name_zh": "J模块计划之云台板"
+    },
+    {
+      "id": "A023",
+      "name": "J Module Planner Cloud Plateau. Step",
+      "name_zh": "J模块计划之云台板.step"
+    },
+    {
+      "id": "A024",
+      "name": "Board.step",
+      "name_zh": "Board.step"
+    },
+    {
+      "id": "A025",
+      "name": "C22.step",
+      "name_zh": "C22.step"
+    },
+    {
+      "id": "A026",
+      "name": "D11.step",
+      "name_zh": "D11.step"
+    },
+    {
+      "id": "A027",
+      "name": "6293523248.step",
+      "name_zh": "6293523248.step"
+    },
+    {
+      "id": "A028",
+      "name": "Y1.step",
+      "name_zh": "Y1.step"
+    },
+    {
+      "id": "A029",
+      "name": "U3.step",
+      "name_zh": "U3.step"
+    },
+    {
+      "id": "A030",
+      "name": "6834759904.step",
+      "name_zh": "6834759904.step"
+    },
+    {
+      "id": "A031",
+      "name": "U2.step",
+      "name_zh": "U2.step"
+    },
+    {
+      "id": "A032",
+      "name": "6834759904.step",
+      "name_zh": "6834759904.step"
+    },
+    {
+      "id": "A033",
+      "name": "U1.step",
+      "name_zh": "U1.step"
+    },
+    {
+      "id": "A034",
+      "name": "6296221664.step",
+      "name_zh": "6296221664.step"
+    },
+    {
+      "id": "A035",
+      "name": "S1.step",
+      "name_zh": "S1.step"
+    },
+    {
+      "id": "A036",
+      "name": "R19.step",
+      "name_zh": "R19.step"
+    },
+    {
+      "id": "A037",
+      "name": "R18.step",
+      "name_zh": "R18.step"
+    },
+    {
+      "id": "A038",
+      "name": "R17.step",
+      "name_zh": "R17.step"
+    },
+    {
+      "id": "A039",
+      "name": "R16.step",
+      "name_zh": "R16.step"
+    },
+    {
+      "id": "A040",
+      "name": "R15.step",
+      "name_zh": "R15.step"
+    },
+    {
+      "id": "A041",
+      "name": "R14.step",
+      "name_zh": "R14.step"
+    },
+    {
+      "id": "A042",
+      "name": "R13.step",
+      "name_zh": "R13.step"
+    },
+    {
+      "id": "A043",
+      "name": "R12.step",
+      "name_zh": "R12.step"
+    },
+    {
+      "id": "A044",
+      "name": "R11.step",
+      "name_zh": "R11.step"
+    },
+    {
+      "id": "A045",
+      "name": "R10.step",
+      "name_zh": "R10.step"
+    },
+    {
+      "id": "A046",
+      "name": "R9.step",
+      "name_zh": "R9.step"
+    },
+    {
+      "id": "A047",
+      "name": "R8.step",
+      "name_zh": "R8.step"
+    },
+    {
+      "id": "A048",
+      "name": "R7.step",
+      "name_zh": "R7.step"
+    },
+    {
+      "id": "A049",
+      "name": "R6.step",
+      "name_zh": "R6.step"
+    },
+    {
+      "id": "A050",
+      "name": "R5.step",
+      "name_zh": "R5.step"
+    },
+    {
+      "id": "A051",
+      "name": "R4.step",
+      "name_zh": "R4.step"
+    },
+    {
+      "id": "A052",
+      "name": "R3.step",
+      "name_zh": "R3.step"
+    },
+    {
+      "id": "A053",
+      "name": "R2.step",
+      "name_zh": "R2.step"
+    },
+    {
+      "id": "A054",
+      "name": "R1.step",
+      "name_zh": "R1.step"
+    },
+    {
+      "id": "A055",
+      "name": "Q3.step",
+      "name_zh": "Q3.step"
+    },
+    {
+      "id": "A056",
+      "name": "Q2.step",
+      "name_zh": "Q2.step"
+    },
+    {
+      "id": "A057",
+      "name": "Q1.step",
+      "name_zh": "Q1.step"
+    },
+    {
+      "id": "A058",
+      "name": "6834761264.step",
+      "name_zh": "6834761264.step"
+    },
+    {
+      "id": "A059",
+      "name": "D10.step",
+      "name_zh": "D10.step"
+    },
+    {
+      "id": "A060",
+      "name": "6293523248.step",
+      "name_zh": "6293523248.step"
+    },
+    {
+      "id": "A061",
+      "name": "D9.step",
+      "name_zh": "D9.step"
+    },
+    {
+      "id": "A062",
+      "name": "6834760224.step",
+      "name_zh": "6834760224.step"
+    },
+    {
+      "id": "A063",
+      "name": "D8.step",
+      "name_zh": "D8.step"
+    },
+    {
+      "id": "A064",
+      "name": "6834760224.step",
+      "name_zh": "6834760224.step"
+    },
+    {
+      "id": "A065",
+      "name": "D7.step",
+      "name_zh": "D7.step"
+    },
+    {
+      "id": "A066",
+      "name": "6834764864.step",
+      "name_zh": "6834764864.step"
+    },
+    {
+      "id": "A067",
+      "name": "6834761024.step",
+      "name_zh": "6834761024.step"
+    },
+    {
+      "id": "A068",
+      "name": "C21.step",
+      "name_zh": "C21.step"
+    },
+    {
+      "id": "A069",
+      "name": "C20.step",
+      "name_zh": "C20.step"
+    },
+    {
+      "id": "A070",
+      "name": "6834752304.step",
+      "name_zh": "6834752304.step"
+    },
+    {
+      "id": "A071",
+      "name": "C19.step",
+      "name_zh": "C19.step"
+    },
+    {
+      "id": "A072",
+      "name": "6834752304.step",
+      "name_zh": "6834752304.step"
+    },
+    {
+      "id": "A073",
+      "name": "C18.step",
+      "name_zh": "C18.step"
+    },
+    {
+      "id": "A074",
+      "name": "C17.step",
+      "name_zh": "C17.step"
+    },
+    {
+      "id": "A075",
+      "name": "C16.step",
+      "name_zh": "C16.step"
+    },
+    {
+      "id": "A076",
+      "name": "C15.step",
+      "name_zh": "C15.step"
+    },
+    {
+      "id": "A077",
+      "name": "C14.step",
+      "name_zh": "C14.step"
+    },
+    {
+      "id": "A078",
+      "name": "C13.step",
+      "name_zh": "C13.step"
+    },
+    {
+      "id": "A079",
+      "name": "C12.step",
+      "name_zh": "C12.step"
+    },
+    {
+      "id": "A080",
+      "name": "C11.step",
+      "name_zh": "C11.step"
+    },
+    {
+      "id": "A081",
+      "name": "C10.step",
+      "name_zh": "C10.step"
+    },
+    {
+      "id": "A082",
+      "name": "C9.step",
+      "name_zh": "C9.step"
+    },
+    {
+      "id": "A083",
+      "name": "C8.step",
+      "name_zh": "C8.step"
+    },
+    {
+      "id": "A084",
+      "name": "C7.step",
+      "name_zh": "C7.step"
+    },
+    {
+      "id": "A085",
+      "name": "C6.step",
+      "name_zh": "C6.step"
+    },
+    {
+      "id": "A086",
+      "name": "C5.step",
+      "name_zh": "C5.step"
+    },
+    {
+      "id": "A087",
+      "name": "C4.step",
+      "name_zh": "C4.step"
+    },
+    {
+      "id": "A088",
+      "name": "C3.step",
+      "name_zh": "C3.step"
+    },
+    {
+      "id": "A089",
+      "name": "C2.step",
+      "name_zh": "C2.step"
+    },
+    {
+      "id": "A090",
+      "name": "C1.step",
+      "name_zh": "C1.step"
+    }
+  ]
+}

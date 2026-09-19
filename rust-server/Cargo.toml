@@ -1,0 +1,16 @@
+[package]
+name = "cad-viewer-server"
+version = "0.1.0"
+edition = "2021"
+description = "RoboMaster 3D viewer local server (static + build/state API)"
+license = "MIT"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "macros"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = true
+strip = true

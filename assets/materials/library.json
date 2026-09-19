@@ -1,0 +1,221 @@
+{
+  "colors": [
+    {
+      "id": "black",
+      "name_zh": "黑",
+      "value": "#1c1e22"
+    },
+    {
+      "id": "dark-gray",
+      "name_zh": "深灰",
+      "value": "#3a3d42"
+    },
+    {
+      "id": "silver",
+      "name_zh": "银灰",
+      "value": "#b8bcc2"
+    },
+    {
+      "id": "white",
+      "name_zh": "白",
+      "value": "#e6e7e9"
+    },
+    {
+      "id": "red",
+      "name_zh": "红",
+      "value": "#a83c3c"
+    },
+    {
+      "id": "blue",
+      "name_zh": "蓝",
+      "value": "#2f5fa8"
+    },
+    {
+      "id": "gold",
+      "name_zh": "金",
+      "value": "#c9a35a"
+    },
+    {
+      "id": "green",
+      "name_zh": "绿",
+      "value": "#4a7a52"
+    }
+  ],
+  "textures": {
+    "normal": [
+      {
+        "id": "carbon-fiber",
+        "name_zh": "碳纤维编织",
+        "file": "textures/carbon-fiber-normal.png"
+      },
+      {
+        "id": "brushed-metal",
+        "name_zh": "拉丝金属",
+        "file": "textures/brushed-metal-normal.png"
+      },
+      {
+        "id": "fine-noise",
+        "name_zh": "细颗粒",
+        "file": "textures/fine-noise-normal.png"
+      }
+    ],
+    "roughness": [
+      {
+        "id": "carbon-fiber",
+        "name_zh": "碳纤维",
+        "file": "textures/carbon-fiber-roughness.png"
+      },
+      {
+        "id": "brushed-metal",
+        "name_zh": "拉丝金属",
+        "file": "textures/brushed-metal-roughness.png"
+      },
+      {
+        "id": "fine-noise",
+        "name_zh": "细颗粒",
+        "file": "textures/fine-noise-roughness.png"
+      }
+    ]
+  },
+  "presets": [
+    {
+      "id": "carbon-fiber",
+      "name_zh": "碳纤维",
+      "name_en": "Carbon Fiber",
+      "color": "#1c1e22",
+      "metalness": 0.38,
+      "roughness": 0.55,
+      "normalMap": "carbon-fiber",
+      "roughnessMap": "carbon-fiber"
+    },
+    {
+      "id": "aluminum-6061",
+      "name_zh": "6061铝合金",
+      "name_en": "6061 Aluminum",
+      "color": "#b8bcc2",
+      "metalness": 0.95,
+      "roughness": 0.3,
+      "normalMap": "brushed-metal"
+    },
+    {
+      "id": "aluminum-7075",
+      "name_zh": "7075铝合金",
+      "name_en": "7075 Aluminum",
+      "color": "#a6abb1",
+      "metalness": 0.92,
+      "roughness": 0.3,
+      "normalMap": "brushed-metal"
+    },
+    {
+      "id": "anodized-black",
+      "name_zh": "阳极氧化铝(黑)",
+      "name_en": "Anodized Black",
+      "color": "#2b2d31",
+      "metalness": 0.85,
+      "roughness": 0.42,
+      "normalMap": "fine-noise"
+    },
+    {
+      "id": "anodized-red",
+      "name_zh": "阳极氧化铝(红)",
+      "name_en": "Anodized Red",
+      "color": "#a83c3c",
+      "metalness": 0.8,
+      "roughness": 0.4,
+      "normalMap": "fine-noise"
+    },
+    {
+      "id": "anodized-blue",
+      "name_zh": "阳极氧化铝(蓝)",
+      "name_en": "Anodized Blue",
+      "color": "#2f5fa8",
+      "metalness": 0.8,
+      "roughness": 0.4,
+      "normalMap": "fine-noise"
+    },
+    {
+      "id": "steel",
+      "name_zh": "钢/不锈钢",
+      "name_en": "Steel",
+      "color": "#9ba0a6",
+      "metalness": 1.0,
+      "roughness": 0.35,
+      "normalMap": "brushed-metal"
+    },
+    {
+      "id": "titanium",
+      "name_zh": "钛合金",
+      "name_en": "Titanium",
+      "color": "#7d8388",
+      "metalness": 0.85,
+      "roughness": 0.42,
+      "normalMap": "brushed-metal"
+    },
+    {
+      "id": "brass",
+      "name_zh": "黄铜",
+      "name_en": "Brass",
+      "color": "#b59a6b",
+      "metalness": 1.0,
+      "roughness": 0.35
+    },
+    {
+      "id": "copper",
+      "name_zh": "紫铜",
+      "name_en": "Copper",
+      "color": "#b87333",
+      "metalness": 1.0,
+      "roughness": 0.3
+    },
+    {
+      "id": "black-fiberglass",
+      "name_zh": "黑色玻璃纤维",
+      "name_en": "Black Fiberglass",
+      "color": "#232528",
+      "metalness": 0.1,
+      "roughness": 0.55,
+      "normalMap": "fine-noise"
+    },
+    {
+      "id": "white-plastic",
+      "name_zh": "白色塑料",
+      "name_en": "White Plastic",
+      "color": "#e6e7e9",
+      "metalness": 0.0,
+      "roughness": 0.5
+    },
+    {
+      "id": "black-polyurethane",
+      "name_zh": "黑色聚氨酯",
+      "name_en": "Black Polyurethane",
+      "color": "#161618",
+      "metalness": 0.0,
+      "roughness": 0.75,
+      "normalMap": "fine-noise"
+    },
+    {
+      "id": "rubber",
+      "name_zh": "橡胶",
+      "name_en": "Rubber",
+      "color": "#1b1b1d",
+      "metalness": 0.0,
+      "roughness": 0.92
+    },
+    {
+      "id": "pmma",
+      "name_zh": "亚克力/PMMA",
+      "name_en": "Acrylic",
+      "color": "#d6e2ea",
+      "metalness": 0.0,
+      "roughness": 0.1
+    },
+    {
+      "id": "pom",
+      "name_zh": "POM 聚甲醛",
+      "name_en": "POM",
+      "color": "#e8e9e7",
+      "metalness": 0.0,
+      "roughness": 0.35
+    }
+  ]
+}

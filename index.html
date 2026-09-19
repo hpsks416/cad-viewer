@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RoboMaster 3D Viewer · 批量导出 + PBR</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #141419;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif; }
+    #app { position: fixed; inset: 0; }
+    #app canvas { display: block; }
+
+    #sidebar { position: fixed; top: 14px; left: 14px; bottom: 14px; width: 240px;
+      z-index: 10; background: rgba(22,22,28,0.86); border: 1px solid #2c2c34;
+      border-radius: 12px; padding: 14px; display: flex; flex-direction: column;
+      gap: 10px; backdrop-filter: blur(10px); }
+    #sidebar h1 { margin: 0; font-size: 15px; color: #e8e8ec; font-weight: 600; }
+    #sidebar .sub { font-size: 11px; color: #8a8a94; margin-top: -6px; }
+    #modelList { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    #modelList li { margin: 0; }
+    #modelList button { width: 100%; display: flex; align-items: center; gap: 8px;
+      cursor: pointer; border: 1px solid #2c2c34; background: rgba(28,28,35,0.8);
+      color: #d6d6dc; padding: 6px; border-radius: 8px; font-size: 12px; text-align: left; }
+    #modelList button:hover { background: #2c2c34; }
+    #modelList button.active { border-color: #4d7cff; background: #2a3040; color: #fff; }
+    #modelList img { width: 42px; height: 32px; object-fit: cover; border-radius: 5px; background: #1b1b20; flex: 0 0 auto; }
+    #modelList .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #modelList .empty { color: #7a7a84; font-size: 12px; padding: 6px; }
+    .side-actions { display: flex; flex-direction: column; gap: 6px; }
+    .side-actions button { cursor: pointer; border: 1px solid #2c2c34; background: rgba(24,24,30,0.82);
+      color: #e8e8ec; padding: 7px 10px; border-radius: 8px; font-size: 12px; }
+    .side-actions button:hover { background: #2c2c34; }
+    .side-actions button.primary { background: #2a4bd7; border-color: #2a4bd7; color: #fff; }
+    .side-actions button.primary:hover { background: #3458e6; }
+    .side-actions button.active { background: #2a4bd7; border-color: #2a4bd7; color: #fff; }
+    .side-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .side-body { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+    #sidebar.collapsed .side-body { display: none; }
+    #sidebar.collapsed { width: 188px; bottom: auto; height: auto; }
+
+    #loading { position: fixed; inset: 0; display: none; place-items: center; z-index: 30;
+      background: rgba(10,10,14,0.55); color: #e8e8ec; font-size: 14px; }
+    .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); color: #8a8a94;
+      font-size: 12px; z-index: 10; pointer-events: none; white-space: nowrap; }
+
+    /* 批量导出面板 */
+    .batch-overlay { position: fixed; inset: 0; z-index: 40; display: none;
+      background: rgba(8,8,12,0.62); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+    .batch-overlay.show { display: flex; }
+    .batch-card { width: min(720px, 92vw); max-height: 84vh; background: #1b1b21; border: 1px solid #2c2c34;
+      border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
+    .batch-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 10px; }
+    .batch-title { font-size: 16px; color: #eef0f4; font-weight: 600; }
+    .batch-sub { font-size: 12px; color: #8a8a94; margin-top: 3px; }
+    .icon-btn { cursor: pointer; border: 1px solid #2c2c34; background: transparent; color: #a9a9b2;
+      width: 30px; height: 30px; border-radius: 8px; font-size: 18px; line-height: 1; }
+    .icon-btn:hover { background: #2c2c34; color: #fff; }
+    .batch-toolbar { display: flex; align-items: center; gap: 8px; padding: 6px 18px; flex-wrap: wrap; }
+    .batch-toolbar button { cursor: pointer; border: 1px solid #2c2c34; background: #22222a;
+      color: #d6d6dc; padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+    .batch-toolbar button:hover { background: #2c2c34; }
+    .batch-status { font-size: 12px; color: #8a8a94; margin-left: auto; }
+    .batch-list { list-style: none; margin: 0; padding: 8px 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .batch-item { display: flex; align-items: center; gap: 10px; border: 1px solid #2a2a32;
+      background: #202027; border-radius: 10px; padding: 9px 10px; }
+    .batch-item input[type=checkbox] { width: 16px; height: 16px; accent-color: #4d7cff; flex: 0 0 auto; cursor: pointer; }
+    .batch-item .thumb { width: 52px; height: 40px; object-fit: cover; border-radius: 6px; background: #16161c; flex: 0 0 auto; }
+    .batch-item .meta { flex: 1; min-width: 0; }
+    .batch-item .cn { color: #e8e8ec; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .batch-item .en { color: #7d7d88; font-size: 11px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .batch-item .badge { flex: 0 0 auto; font-size: 11px; padding: 3px 8px; border-radius: 20px; }
+    .badge.done { color: #5ad08a; background: rgba(90,208,138,0.12); }
+    .badge.todo { color: #c9a13a; background: rgba(201,161,58,0.12); }
+    .badge.err { color: #e26b6b; background: rgba(226,107,107,0.12); }
+    .batch-empty { color: #7a7a84; font-size: 13px; padding: 20px; text-align: center; }
+    .batch-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px 16px; border-top: 1px solid #26262e; }
+    .batch-summary { font-size: 12px; color: #8a8a94; }
+    .primary-btn { cursor: pointer; border: 0; background: #2a4bd7; color: #fff; padding: 9px 18px; border-radius: 9px; font-size: 13px; }
+    .primary-btn:hover { background: #3458e6; }
+    .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 右侧面板（剖面 + 关节 + 材质），每个子窗口可最小化 */
+    #rightPanels { position: fixed; top: 14px; right: 14px; z-index: 12;
+      display: flex; flex-direction: column; gap: 10px; align-items: flex-end; max-height: calc(100vh - 28px); }
+    .panel { width: 260px; max-height: 56vh; background: rgba(22,22,28,0.9);
+      border: 1px solid #2c2c34; border-radius: 12px; backdrop-filter: blur(10px);
+      display: flex; flex-direction: column; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 10px 8px 14px; flex: 0 0 auto; }
+    .panel-title { font-size: 13px; color: #e8e8ec; font-weight: 600; }
+    .panel-min { cursor: pointer; border: 1px solid #2c2c34; background: #22222a;
+      color: #c8c8d0; width: 22px; height: 22px; border-radius: 6px; font-size: 13px;
+      line-height: 1; padding: 0; }
+    .panel-min:hover { background: #2c2c34; color: #fff; }
+    .panel-body { padding: 0 14px 12px; overflow-y: auto; min-height: 0; }
+    .panel.collapsed .panel-body { display: none; }
+    .panel.collapsed { width: 188px; }
+    #jointPanel { display: none; }
+    .mat-sel { font-size: 11px; color: #8a8a94; margin-bottom: 8px; min-height: 28px; line-height: 1.4; word-break: break-all; }
+    .mat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .mat-swatch { position: relative; height: 40px; border: 1px solid #2c2c34; border-radius: 7px; cursor: pointer; overflow: hidden; display: flex; align-items: flex-end; padding: 3px; }
+    .mat-swatch span { display: block; width: 100%; font-size: 10px; color: #fff; background: rgba(0,0,0,0.45); border-radius: 4px; padding: 1px 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; }
+    .mat-swatch:hover { border-color: #4d7cff; }
+    .mat-swatch.active { outline: 2px solid #4d7cff; outline-offset: -2px; }
+    .mat-reset { width: 100%; margin-top: 8px; cursor: pointer; border: 1px solid #2c2c34; background: #22222a; color: #c8c8d0; padding: 6px; border-radius: 7px; font-size: 11px; }
+    .mat-reset:hover { background: #2c2c34; }
+
+    .mat-sub { font-size: 11px; color: #8a8a94; margin: 10px 0 4px; }
+    .mat-color-row { display: flex; align-items: center; gap: 8px; }
+    .mat-color { width: 34px; height: 26px; padding: 0; border: 1px solid #2c2c34; border-radius: 6px; background: transparent; cursor: pointer; }
+    .mat-color-hex { font-size: 11px; color: #c8c8d0; }
+    .mat-colors { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 6px; }
+    .mat-color-swatch { height: 18px; border: 1px solid #2c2c34; border-radius: 4px; cursor: pointer; }
+    .mat-color-swatch:hover { outline: 1px solid #4d7cff; }
+    .mat-slider { width: 100%; accent-color: #4d7cff; margin: 2px 0; }
+    .mat-val { float: right; color: #8a8a94; }
+    .mat-texgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+    .mat-tex { position: relative; border: 1px solid #2c2c34; border-radius: 7px; background: #22222a; cursor: pointer; overflow: hidden; padding: 2px; display: flex; flex-direction: column; gap: 2px; }
+    .mat-tex img { width: 100%; height: 30px; object-fit: cover; border-radius: 4px; display: block; background: #1b1b20; }
+    .mat-tex span { font-size: 9px; color: #c8c8d0; text-align: center; line-height: 1.2; }
+    .mat-tex.active { outline: 2px solid #4d7cff; outline-offset: -2px; }
+    .mat-save { margin-top: 10px; }
+    .mat-autosave-label { font-size: 11px; color: #c8c8d0; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .mat-autosave-label input { accent-color: #4d7cff; }
+    .mat-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .mat-actions button { flex: 1; width: auto; margin-top: 0; cursor: pointer; border: 1px solid #2c2c34; background: #22222a; color: #c8c8d0; padding: 6px; border-radius: 7px; font-size: 11px; }
+    .mat-actions button:hover { background: #2c2c34; }
+    .joint-title { font-size: 13px; color: #e8e8ec; font-weight: 600; margin-bottom: 8px; }
+    .joint-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .joint-list li { display: grid; grid-template-columns: 1fr 90px 38px; gap: 6px; align-items: center; }
+    .joint-label { color: #c8c8d0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .joint-slider { width: 100%; accent-color: #4d7cff; }
+    .joint-value { color: #8a8a94; font-size: 11px; text-align: right; }
+
+    /* 剖面面板 */
+    .section-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #c8c8d0; margin: 4px 0; }
+    .section-modes { display: flex; gap: 4px; margin: 6px 0; }
+    .section-modes button { flex: 1; cursor: pointer; border: 1px solid #2c2c34; background: #22222a; color: #c8c8d0; padding: 4px 0; border-radius: 6px; font-size: 11px; }
+    .section-modes button.active { background: #2a4bd7; border-color: #2a4bd7; color: #fff; }
+    .section-row { display: grid; grid-template-columns: 36px 1fr 42px; gap: 6px; align-items: center; margin: 6px 0; font-size: 11px; color: #8a8a94; }
+    .section-row input[type=range] { width: 100%; accent-color: #4d7cff; }
+    .section-val { text-align: right; color: #8a8a94; }
+
+    /* 场景树 */
+    .tree-head { font-size: 13px; color: #e8e8ec; font-weight: 600; margin: 8px 0 4px; }
+    .tree-wrap { flex: 1; overflow-y: auto; min-height: 0; border-top: 1px solid #2c2c34; padding-top: 6px; }
+    .tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+    .tree-row { display: flex; align-items: center; gap: 4px; padding: 3px 4px; border-radius: 6px; cursor: pointer; color: #c8c8d0; font-size: 12px; }
+    .tree-row:hover { background: #24242c; }
+    .tree-row.selected { background: #2a3a5c; color: #fff; }
+    .tree-toggle { width: 12px; color: #7d7d88; text-align: center; flex: 0 0 auto; font-size: 11px; }
+    .tree-toggle.has { cursor: pointer; }
+    .tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-kind { flex: 0 0 auto; font-size: 10px; color: #8a8a94; background: rgba(255,255,255,0.05); border-radius: 4px; padding: 1px 5px; }
+      /* 二次确认弹窗 */
+    .confirm-overlay { position: fixed; inset: 0; z-index: 70; display: flex;
+      background: rgba(8,8,12,0.62); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+    .confirm-card { width: min(360px, 88vw); background: #1b1b21; border: 1px solid #2c2c34;
+      border-radius: 14px; padding: 20px 20px 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .confirm-title { font-size: 15px; color: #eef0f4; font-weight: 600; }
+    .confirm-msg { font-size: 13px; color: #b8b8c2; margin-top: 10px; line-height: 1.5; }
+    .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .confirm-actions button { cursor: pointer; border: 1px solid #2c2c34; background: #22222a;
+      color: #d6d6dc; padding: 7px 16px; border-radius: 8px; font-size: 12px; }
+    .confirm-actions button:hover { background: #2c2c34; }
+    .confirm-actions button.confirm-ok { background: #c73b3b; border-color: #c73b3b; color: #fff; }
+    .confirm-actions button.confirm-ok:hover { background: #d84949; }
+      /* imported texture tiles + import button */
+    .mat-tex-local { position: relative; }
+    .mat-tex-local .mat-tex { width: 100%; }
+    .mat-tex-del { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
+      border: none; background: rgba(0,0,0,0.55); color: #fff; border-radius: 4px; font-size: 11px;
+      line-height: 1; cursor: pointer; display: none; padding: 0; }
+    .mat-tex-local:hover .mat-tex-del { display: block; }
+    .mat-tex-del:hover { background: #c73b3b; }
+    .mat-import { border: 1px dashed #3a3a44; background: transparent; color: #8a8a94;
+      border-radius: 7px; cursor: pointer; height: 42px; font-size: 11px; }
+    .mat-import:hover { border-color: #4d7cff; color: #d6d6dc; background: rgba(77,124,255,0.08); }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./lib/three.module.js",
+      "three/addons/": "./lib/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <aside id="sidebar">
+    <div class="side-head">
+      <h1>RoboMaster 作品</h1>
+      <button id="sideMin" class="panel-min" type="button" title="minimize/expand">-</button>
+    </div>
+    <div class="side-body">
+      <div class="sub">零件清单（models/manifest.json）</div>
+    <ul id="modelList"></ul>
+    <div class="tree-head">装配结构</div>
+    <div id="sceneTree" class="tree-wrap"></div>
+    <div class="side-actions">
+      <button id="openBatch" class="primary">批量导出 / 转换</button>
+      <button id="openFile">打开本地模型</button>
+      <button id="resetView">复位视角</button>
+      <button id="placeBtn">点击场地放置机器人</button>
+      <button id="bgMatBtn">编辑场地材质</button>
+      <button id="resetPlaceBtn">重置初始位置</button>
+    </div>
+    </div>
+  </aside>
+
+  <div id="rightPanels">
+    <div id="sectionPanel" class="panel">
+      <div class="panel-head">
+        <div class="panel-title">剖面</div>
+        <button class="panel-min" type="button" title="最小化/展开">—</button>
+      </div>
+      <div class="panel-body">
+        <label class="section-toggle"><input type="checkbox" id="sectionToggle"> 启用剖面</label>
+        <div class="section-modes">
+          <button data-section-mode="xz" class="active">XZ</button>
+          <button data-section-mode="xy">XY</button>
+          <button data-section-mode="yz">YZ</button>
+          <button data-section-mode="free">斜平面</button>
+        </div>
+        <div class="section-row">
+          <span>位置</span>
+          <input type="range" id="sectionPos" value="0">
+          <span class="section-val" id="sectionPosVal">0.00</span>
+        </div>
+        <div id="sectionOblique" style="display:none">
+          <div class="section-row"><span>绕X</span><input type="range" id="sectionAng1" min="-180" max="180" value="0"></div>
+          <div class="section-row"><span>绕Z</span><input type="range" id="sectionAng2" min="-180" max="180" value="0"></div>
+        </div>
+      </div>
+    </div>
+    <div id="jointPanel" class="panel">
+      <div class="panel-head">
+        <div class="panel-title">可动关节</div>
+        <button class="panel-min" type="button" title="最小化/展开">—</button>
+      </div>
+      <div class="panel-body"></div>
+    </div>
+    <div id="materialPanel" class="panel">
+      <div class="panel-head">
+        <div class="panel-title">材质</div>
+        <button class="panel-min" type="button" title="最小化/展开">—</button>
+      </div>
+      <div class="panel-body"></div>
+    </div>
+  </div>
+
+  <div id="batchPanel" class="batch-overlay">
+    <div class="batch-card">
+      <div class="batch-head">
+        <div>
+          <div class="batch-title">批量导出 / 转换</div>
+          <div class="batch-sub">勾选要转换的工程（读取 assets/export/ 里的 .stl / .step）</div>
+        </div>
+        <button id="batchClose" class="icon-btn">×</button>
+      </div>
+      <div class="batch-toolbar">
+        <button id="batchSelectAll">全选</button>
+        <button id="batchSelectNone">清空</button>
+        <button id="batchRefresh">刷新</button>
+        <span class="batch-status" id="batchStatus"></span>
+      </div>
+      <ul id="batchList" class="batch-list"></ul>
+      <div class="batch-foot">
+        <span class="batch-summary" id="batchSummary"></span>
+        <button id="batchBuild" class="primary-btn">转换选中</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading">加载中…</div>
+  <div class="hint">左键旋转 / 滚轮缩放 / 右键平移 · 拖动关节高亮环旋转 · 拖拽 .glb / .stl 到窗口也可加载</div>
+  <input id="fileInput" type="file" accept=".glb,.gltf,.stl" hidden />
+  <script type="module" src="./main.js"></script>
+  <script type="module" src="./batch.js"></script>
+  <script type="module" src="./viewer/panels.js"></script>
+</body>
+</html>

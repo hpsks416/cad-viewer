@@ -1,0 +1,7 @@
+# 本地机器翻译（STL/STEP 中文零件名 -> 英文）
+ctranslate2>=4.0
+sentencepiece>=0.2.0
+
+# STEP AP214 解析用 OpenCascade 绑定（无需手动装）
+# 首次构建时脚本会自动下载 cadquery-ocp + vtk 并解压到 work/_vendor/；
+# 若想手动安装：pip install cadquery-ocp==8.0.1.0.0 vtk==9.6.2

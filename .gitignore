@@ -1,0 +1,41 @@
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+venv/
+.tmp-pip/
+.venv-tmp/
+
+# ---- Rust ----
+rust-server/target/
+
+# ---- 本地翻译模型（首次运行自动下载，~74MB）----
+tools/translate_models/
+
+# ---- OpenCascade Python 绑定（首次构建自动下载，~130MB）----
+work/_vendor/
+
+# ---- 生成的中间产物 / 缩略图 / 依赖 ----
+work/
+models/
+
+# ---- 大型原始 CAD 输入（不进 git，本地自备；保留小样例便于演示）----
+assets/export/*
+!assets/export/test_assembly.step
+!assets/export/电池锁紧盖.STL
+
+# ---- 本地材质/初始位置状态（跨浏览器共享，含个人设置）----
+user_state.json
+
+# ---- 编辑器 / 系统 ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+# ---- 调试 / 测试残留（不进库）----
+_bbox_probe.py
+tools/_schtask_test.ps1
+tools/_schtask_test.log
+tools/一键导出减速箱测试.cmd
+tools/export_log.txt
+tools/diagnose_step_ap.swb

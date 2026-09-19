@@ -1,0 +1,9 @@
+{
+  "joints": [
+    { "node": "sub-assembly", "type": "revolute", "axis": [0, 1, 0], "min": -180, "max": 180, "default": 0 }
+  ],
+  "candidates": [
+    { "id": "root-assembly", "name": "Root Assembly" },
+    { "id": "sub-assembly", "name": "Sub Assembly" }
+  ]
+}

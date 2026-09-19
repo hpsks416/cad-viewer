@@ -1,0 +1,44 @@
+' Export current assembly/part to STEP AP214 (with part-level colors).
+' Run: Tools > Macro > Run > select this .swb
+Dim swApp As Object
+
+Sub main()
+    Set swApp = Application.SldWorks
+    Dim swModel As Object
+    Set swModel = swApp.ActiveDoc
+
+    If swModel Is Nothing Then
+        MsgBox "Open an assembly/part first, then run this macro.", vbExclamation, "Export STEP AP214"
+        Exit Sub
+    End If
+
+    ' STEP preferences: AP214 (the value IS the AP number) + appearances + non-atomic save
+    swApp.SetUserPreferenceIntegerValue 75, 214   ' swStepAP = AP214
+    swApp.SetUserPreferenceToggle 787, True        ' swStepExportAppearances
+    swApp.SetUserPreferenceToggle 786, False       ' swStepExportAtomicSave
+    swApp.SetUserPreferenceToggle 397, True        ' swStepExportFaceEdgeProps
+    swApp.SetUserPreferenceToggle 396, True        ' swStepExportSplitPeriodic
+    swApp.SetUserPreferenceToggle 497, True        ' swStepExport3DCurveFeatures
+
+    Dim src As String
+    src = swModel.GetPathName
+    If src = "" Then
+        MsgBox "Document is not saved yet.", vbExclamation, "Export STEP AP214"
+        Exit Sub
+    End If
+
+    Dim dot As Long
+    dot = InStrRev(src, ".")
+    Dim outPath As String
+    outPath = Left(src, dot - 1) & ".STEP"
+
+    Dim errs As Long, warns As Long
+    swModel.Extension.SaveAs outPath, 0, 1, Nothing, errs, warns
+
+    ' Verify by file existence (SaveAs boolean is unreliable via late binding)
+    If Dir(outPath) <> "" Then
+        MsgBox "Export OK (AP214):" & vbCrLf & outPath, vbInformation, "Export STEP AP214"
+    Else
+        MsgBox "Export may have failed. Check:" & vbCrLf & outPath, vbCritical, "Export STEP AP214"
+    End If
+End Sub

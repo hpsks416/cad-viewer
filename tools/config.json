@@ -1,0 +1,6 @@
+{
+  "blender": "G:\\Blender\\Application\\blender.exe",
+  "lib_dir": "work/_vendor",
+  "model_dir": "tools/translate_models",
+  "model_url": "https://argos-net.com/v1/translate-zh_en-1_9.argosmodel"
+}
