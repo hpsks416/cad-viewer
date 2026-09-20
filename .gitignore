@@ -39,3 +39,6 @@ tools/_schtask_test.log
 tools/一键导出减速箱测试.cmd
 tools/export_log.txt
 tools/diagnose_step_ap.swb
+tools/probe_step.py
+tools/diagnose_export.swb
+tools/hello_test.swb

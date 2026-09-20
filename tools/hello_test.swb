@@ -1,3 +1,0 @@
-Sub main()
-    MsgBox "RUN OK: macro execution works.", vbInformation, "Hello test"
-End Sub
