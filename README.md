@@ -170,7 +170,7 @@ cad-viewer/
 - **M1 首次手动导出** ✅ 单零件 STL 带材质进浏览器
 - **M2 装配体 + 材质** ✅ STEP AP214 保留层级与面颜色，presets 升级 PBR
 - **M3 一键自动化** ✅ `python run.py` 串起扫描 → 翻译 → 转换 → manifest → 查看器
-- **M4 查看器交互** 🔶 已完成：关节、场景树、剖切、材质库、场地背景与虚化；待做：爆炸视图、热点标注、测量
+- **M4 查看器交互** ✅ 已完成：关节、场景树、剖切、材质库、场地背景与虚化；大型装配体（3000 实体总装）端到端已验证；待做：爆炸视图、热点标注、测量
 - **M5 上线** ⏳ GitHub Pages 在线演示 + 简历化 README
 
 ## 提交 GitHub 前（打包说明）
@@ -186,7 +186,9 @@ cad-viewer/
 
 - **Blender**：路径见 `tools/config.json`，脚本自动探测 `G:\Blender\Application\blender.exe` 等常见位置。
 - **Python 3.10+**：翻译用 `ctranslate2` + `sentencepiece`；STEP 解析的 OCP/vtk wheel 首次自动下载。
-- **SolidWorks**：单零件另存为 `STL`；装配体另存为 `STEP AP214`（推荐）。大装配体可走 `tools/export_sldasm.ps1` 后台 COM 导出，保留零件级颜色。
+- **SolidWorks**：单零件另存为 `STL`；装配体另存为 `STEP AP214`（推荐，保留零件级颜色）。
+  大装配体（数千实体）推荐用 VBA 宏 `tools/export_step_ap214_v4.swb`：在 SolidWorks 打开装配体后走 `Tools → Macro → Run` 运行，
+  已实测导出 3000 实体的总装（约 50 分钟，AP214 + 颜色完整，弹窗显示进度/耗时）。后台 COM 脚本 `tools/export_sldasm.ps1` 可作批量备选。
 
 ## License
 
