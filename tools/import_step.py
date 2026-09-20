@@ -154,11 +154,14 @@ class _StepDoc:
         r = STEPCAFControl_Reader()
         r.SetColorMode(True)
         r.SetNameMode(True)
+        print("[import_step] 正在读取 STEP 文件 ...", flush=True)
         st = r.ReadFile(os.path.abspath(path))
         if st != 1:  # IFSelect_RetDone
             raise SystemExit(f"读取 STEP 失败：{path} (status={st})")
+        print("[import_step] ReadFile 完成，正在 Transfer 到 XCAF ...", flush=True)
         if not r.Transfer(self.doc):
             raise SystemExit("STEP 转 XCAF 失败")
+        print("[import_step] Transfer 完成", flush=True)
         self.st = XCAFDoc_DocumentTool.ShapeTool_s(self.doc.Main())
         self.ct = XCAFDoc_DocumentTool.ColorTool_s(self.doc.Main())
 
@@ -221,10 +224,14 @@ def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0
     naming = _load_naming()
 
     free = doc.free_shapes()
+    n_leaves = sum(1 for root in free for leaf in _iter_leaves(doc, root))
+    print(f"[import_step] 顶层根节点 {len(free)} 个，叶子零件 {n_leaves} 个", flush=True)
     # 计算整体尺寸以决定网格精度
-    max_dim = 0.0
+    extents = []
+    idx = 0
     for root in free:
         for leaf in _iter_leaves(doc, root):
+            idx += 1
             shape = doc.leaf_shape(leaf)
             if shape is None or shape.IsNull():
                 continue
@@ -235,8 +242,16 @@ def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0
             ext = max(mx[i] - mn[i] for i in range(3))
             if not math.isfinite(ext) or ext <= 0 or ext > 1e6:
                 continue
-            max_dim = max(max_dim, ext)
-    max_dim = max_dim or 100.0
+            extents.append(ext)
+            if idx % 100 == 0:
+                print(f"[import_step] 尺寸预扫描 {idx}/{n_leaves} ...", flush=True)
+    # 用 95% 分位而非最大值：个别零件可能带有远处孤立顶点/退化边而把包围盒撑大，
+    # 导致网格精度过粗。取稳健的 95% 分位作为整体尺寸代理。
+    max_dim = 100.0
+    if extents:
+        extents.sort()
+        k = min(len(extents) - 1, int(len(extents) * 0.95))
+        max_dim = extents[k] or 100.0
     if linear_deflection is None:
         linear_deflection = max_dim * 0.002
     lin = float(linear_deflection)
@@ -245,8 +260,10 @@ def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0
     # 预写所有叶子 STL（保证建树时 id 可用），顺序与遍历一致。
     leaf_meta = []  # {"id","name","source_name","color","part"}
     used = set()
+    idx = 0
     for root in free:
         for leaf in _iter_leaves(doc, root):
+            idx += 1
             shape = doc.leaf_shape(leaf)
             raw = _get_name(leaf)
             slug, name = _translate_name(raw, naming)
@@ -267,6 +284,8 @@ def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0
                 "id": base, "name": name, "source_name": raw,
                 "color": doc.get_color(leaf), "part": stl_rel,
             })
+            if idx % 25 == 0:
+                print(f"[import_step] 网格化 {idx}/{n_leaves} ...", flush=True)
 
     meta_iter = iter(leaf_meta)
     parts_map = {}

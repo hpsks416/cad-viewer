@@ -1,0 +1,74 @@
+' VERSION: v4
+' Export current assembly/part to STEP AP214 (with part-level colors).
+' No line continuations; wrapped in an error handler.
+Dim swApp As Object
+
+Sub main()
+    On Error GoTo ErrHandler
+
+    MsgBox "v4 STARTED", vbInformation, "Export STEP AP214 v4"
+
+    Set swApp = Application.SldWorks
+    Dim swModel As Object
+    Set swModel = swApp.ActiveDoc
+
+    If swModel Is Nothing Then
+        MsgBox "No active document. Open the assembly first, then run this macro.", vbExclamation, "Export STEP AP214 v4"
+        Exit Sub
+    End If
+
+    Dim src As String
+    src = swModel.GetPathName
+    If src = "" Then
+        MsgBox "Document is not saved yet.", vbExclamation, "Export STEP AP214 v4"
+        Exit Sub
+    End If
+
+    Dim dot As Long
+    dot = InStrRev(src, ".")
+    Dim outPath As String
+    outPath = Left(src, dot - 1) & ".STEP"
+
+    Dim prompt As String
+    prompt = "v4 | Active doc: " & swModel.GetTitle & vbCrLf & "Doc type: " & swModel.GetType & vbCrLf & "Output: " & outPath & vbCrLf & vbCrLf & "SolidWorks will appear frozen during export. Start now?"
+
+    If MsgBox(prompt, vbYesNo + vbQuestion, "Export STEP AP214 v4") <> vbYes Then
+        Exit Sub
+    End If
+
+    swApp.SetUserPreferenceIntegerValue 75, 214
+    swApp.SetUserPreferenceToggle 787, True
+    swApp.SetUserPreferenceToggle 786, False
+    swApp.SetUserPreferenceToggle 397, True
+    swApp.SetUserPreferenceToggle 396, True
+    swApp.SetUserPreferenceToggle 497, True
+
+    If Dir(outPath) <> "" Then
+        On Error Resume Next
+        Kill outPath
+        On Error GoTo ErrHandler
+    End If
+
+    Dim startTime As Date
+    startTime = Now
+
+    Dim errs As Long, warns As Long
+    Dim ok As Boolean
+    ok = swModel.Extension.SaveAs(outPath, 0, 1, Nothing, errs, warns)
+
+    Dim elapsedSec As Long
+    elapsedSec = DateDiff("s", startTime, Now)
+    Dim elapsedText As String
+    elapsedText = CStr(Int(elapsedSec / 60)) & " min " & CStr(elapsedSec Mod 60) & " sec"
+
+    If Dir(outPath) <> "" Then
+        MsgBox "Export OK (AP214)" & vbCrLf & outPath & vbCrLf & vbCrLf & "elapsed: " & elapsedText & vbCrLf & "SaveAs=" & ok & "  errs=" & errs & "  warns=" & warns, vbInformation, "Export STEP AP214 v4"
+    Else
+        MsgBox "Export may have failed (no output file)." & vbCrLf & outPath & vbCrLf & vbCrLf & "elapsed: " & elapsedText & vbCrLf & "SaveAs=" & ok & "  errs=" & errs & "  warns=" & warns, vbCritical, "Export STEP AP214 v4"
+    End If
+
+    Exit Sub
+
+ErrHandler:
+    MsgBox "ERROR " & Err.Number & ": " & Err.Description, vbCritical, "Export STEP AP214 v4"
+End Sub

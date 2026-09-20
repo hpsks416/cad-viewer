@@ -5793,5 +5793,800 @@
     "slug": "assem-helios-gear-p16.33",
     "name": "Assem Helios Gear P16.33",
     "translation": "Assem_helios_gear_P16.33"
+  },
+  "step-node::0904骨盆CNC": {
+    "slug": "cnc-0904-pelvis",
+    "name": "Cnc 0904 Pelvis",
+    "translation": "CNC, 0904 pelvis"
+  },
+  "step-node::090437x43x12滚针组": {
+    "slug": "090437x43x12-rolling-needle-group",
+    "name": "090437x43x12 Rolling Needle Group",
+    "translation": "090437x43x12 Rolling needle group"
+  },
+  "step-node::090448x37x7碗组轴承": {
+    "slug": "090448x37x7-bowl-bearings",
+    "name": "090448x37x7 Bowl Bearings",
+    "translation": "090448x37x7 bowl bearings"
+  },
+  "step-node::090461.9x50x8内36外45碗组轴承": {
+    "slug": "090461.9-x-50x8-36-extra-45-bowl-bearings",
+    "name": "090461.9 X 50x8 36 Extra 45 Bowl Bearings",
+    "translation": "090461.9 x 50x8 36 extra 45 bowl bearings"
+  },
+  "step-node::0904髋部大腿链轮CNC": {
+    "slug": "0904-hip-stringed-cnc",
+    "name": "0904 Hip Stringed Cnc",
+    "translation": "0904 hip-stringed CNC"
+  },
+  "step-node::0904髋部小腿链轮CNC": {
+    "slug": "cnc-0904-hip-stringed-leg-wheel",
+    "name": "Cnc 0904 Hip Stringed Leg Wheel",
+    "translation": "CNC 0904 hip-stringed leg wheel"
+  },
+  "step-node::0904髋关节轴垫环CNC": {
+    "slug": "cnc-0904-hip-and-pattern-gasket-ring",
+    "name": "Cnc 0904 Hip And Pattern Gasket Ring",
+    "translation": "CNC 0904 hip-and-pattern gasket ring"
+  },
+  "step-node::0904GEN4小腿连杆0": {
+    "slug": "0904-gen4-calibration-0",
+    "name": "0904 Gen4 Calibration 0",
+    "translation": "0904 GEN4 calibration 0"
+  },
+  "step-node::0904W6碗组轴承": {
+    "slug": "0904w6-bowl-bearings",
+    "name": "0904w6 Bowl Bearings",
+    "translation": "0904W6 bowl bearings"
+  },
+  "step-node::090427内侧关节轴": {
+    "slug": "inner-joint-axis-090427",
+    "name": "Inner Joint Axis 090427",
+    "translation": "Inner joint axis 090427"
+  },
+  "step-node::090427外侧关节轴": {
+    "slug": "0904227-external-joint-axis",
+    "name": "0904227 External Joint Axis",
+    "translation": "0904227 external joint axis"
+  },
+  "step-node::0904髋关节滑环带出线保护": {
+    "slug": "0904-hip-slide-rings-with-line-protection",
+    "name": "0904 Hip Slide Rings With Line Protection",
+    "translation": "0904 hip slide rings with line protection"
+  },
+  "step-node::090422x44x1PTFE垫片": {
+    "slug": "090422x44x1ptfe-gasket",
+    "name": "090422x44x1ptfe Gasket",
+    "translation": "090422x44x1PTFE gasket"
+  },
+  "step-node::0904F6900zz": {
+    "slug": "0904f6900zz",
+    "name": "0904f6900zz",
+    "translation": "0904F6900zz"
+  },
+  "step-node::0904GEN4小腿连杆3": {
+    "slug": "0904gen4-calibration-3",
+    "name": "0904gen4 Calibration 3",
+    "translation": "0904GEN4 calibration 3"
+  },
+  "step-node::090410x14x0.5": {
+    "slug": "090410x14x0.5",
+    "name": "090410x14x0.5",
+    "translation": "090410x14x0.5"
+  },
+  "step-node::0904膝关节碗组CNC底档": {
+    "slug": "0904-knee-joints-cnc-bottom",
+    "name": "0904 Knee Joints Cnc Bottom",
+    "translation": "0904 knee joints, CNC bottom"
+  },
+  "step-node::0904膝关节碗组CNC迫紧环": {
+    "slug": "9-09-04-knee-bowl-cnc-tighten-rings",
+    "name": "9 09 04 Knee Bowl Cnc Tighten Rings",
+    "translation": "9-09-04 Knee Bowl CNC Tighten Rings"
+  },
+  "step-node::0904P16.33减速箱固定端": {
+    "slug": "0904p16.33-fixed-end-of-speedbox",
+    "name": "0904p16.33 Fixed End Of Speedbox",
+    "translation": "0904P16.33 Fixed end of speedbox"
+  },
+  "step-node::09043508电机转子": {
+    "slug": "09043508-electric-rotor",
+    "name": "09043508 Electric Rotor",
+    "translation": "09043508 electric rotor"
+  },
+  "step-node::0904齿圈60×0.8x-0.35": {
+    "slug": "0904-cog-60x0.8x0.35",
+    "name": "0904 Cog 60x0.8x0.35",
+    "translation": "0904 cog 60x0.8x0.35"
+  },
+  "step-node::0904太阳轮15×0.6x0.13": {
+    "slug": "0904-sun-wheel-15x0.6x0.13",
+    "name": "0904 Sun Wheel 15x0.6x0.13",
+    "translation": "0904 Sun wheel 15x0.6x0.13"
+  },
+  "step-node::0904行星轮49×0.6x-0.13": {
+    "slug": "0904-planetary-wheel-49x0.6x-0.13",
+    "name": "0904 Planetary Wheel 49x0.6x 0.13",
+    "translation": "0904 planetary wheel 49x0.6x-0.13"
+  },
+  "step-node::0904行星轮12×0.8x0.35": {
+    "slug": "0904-planetary-wheel-12x0.8x0.35",
+    "name": "0904 Planetary Wheel 12x0.8x0.35",
+    "translation": "0904 planetary wheel 12x0.8x0.35"
+  },
+  "step-node::0904JA025XPO": {
+    "slug": "0904ja025xpo",
+    "name": "0904ja025xpo",
+    "translation": "0904JA025XPO"
+  },
+  "step-node::0904P16.33输出端": {
+    "slug": "0904p16.33-outputend",
+    "name": "0904p16.33 Outputend",
+    "translation": "0904P16.33 Outputend"
+  },
+  "step-node::0904P16.33端盖": {
+    "slug": "0904p16.33-end-cap",
+    "name": "0904p16.33 End Cap",
+    "translation": "0904P16.33 end cap"
+  },
+  "step-node::0904P16.33helioslogo": {
+    "slug": "0904p16.33helioslogo",
+    "name": "0904p16.33helioslogo",
+    "translation": "0904P16.33helioslogo"
+  },
+  "step-node::0904φ5x14塞打": {
+    "slug": "090405x14-slugs",
+    "name": "090405x14 Slugs",
+    "translation": "090405x14 slugs"
+  },
+  "step-node::0904hexagon socket head cap screws gb_GB_FASTENER_SCREWS_HSHCS M3X6-N": {
+    "slug": "0904hexagon-socket-head-cap-screws-gb-gb-fastener-screws-hshcs-m3x6-n",
+    "name": "0904hexagon Socket Head Cap Screws Gb Gb Fastener Screws Hshcs M3x6 N",
+    "translation": "0904hexagon socket head cap screws gb_GB_FASTENER_SCREWS_HSHCS M3X6-N"
+  },
+  "step-node::0904P16.33_120mmWheel": {
+    "slug": "0904p16.33-120mmwheel",
+    "name": "0904p16.33 120mmwheel",
+    "translation": "0904P16.33_120mmWheel"
+  },
+  "step-node::0904MIC01_D4_L24": {
+    "slug": "0904mic01-d4-l24",
+    "name": "0904mic01 D4 L24",
+    "translation": "0904MIC01_D4_L24"
+  },
+  "step-node::0904MF84ZZ": {
+    "slug": "0904mf84zz",
+    "name": "0904mf84zz",
+    "translation": "0904MF84ZZ"
+  },
+  "step-node::09044x6x0.5": {
+    "slug": "09044x6x0.5",
+    "name": "09044x6x0.5",
+    "translation": "09044x6x0.5"
+  },
+  "step-node::0904M3x7x0.6卡簧": {
+    "slug": "0904m3x7x0.6calorine",
+    "name": "0904m3x7x0.6calorine",
+    "translation": "0904M3x7x0.6calorine"
+  },
+  "step-node::0904M8x25φ10对锁螺母": {
+    "slug": "0904m8x25-10-pair-of-lock-nuts",
+    "name": "0904m8x25 10 Pair Of Lock Nuts",
+    "translation": "0904M8x25:10 pair of lock nuts"
+  },
+  "step-node::0904M8x16φ10对锁螺母": {
+    "slug": "0904m8x16-10-pair-of-bolt-nuts",
+    "name": "0904m8x16 10 Pair Of Bolt Nuts",
+    "translation": "0904M8x16:10 pair of bolt nuts"
+  },
+  "step-node::0904M8x20φ10对锁螺母": {
+    "slug": "0904m8x20-10-pair-of-lock-nuts",
+    "name": "0904m8x20 10 Pair Of Lock Nuts",
+    "translation": "0904M8x20:10 pair of lock nuts"
+  },
+  "step-node::0904M8D20H5沉头螺丝垫片1227v1.4": {
+    "slug": "0904m8d20h5-sunhead-screws-1227v1.4",
+    "name": "0904m8d20h5 Sunhead Screws 1227v1.4",
+    "translation": "0904M8D20H5 sunhead screws 1227v1.4"
+  },
+  "step-node::hexagon socket countersunk head screws gb_GB_FASTENER_SCREWS_HSCHS M8X16-C": {
+    "slug": "hexagon-socket-countersunk-head-screws-gb-gb-fastener-screws-hschs-m8x16-c",
+    "name": "Hexagon Socket Countersunk Head Screws Gb Gb Fastener Screws Hschs M8x16 C",
+    "translation": "hexagon socket countersunk head screws gb_GB_FASTENER_SCREWS_HSCHS M8X16-C"
+  },
+  "step-node::0904BKB450_080_205底筒": {
+    "slug": "0904bkb450-080-205-base-cylinder",
+    "name": "0904bkb450 080 205 Base Cylinder",
+    "translation": "0904BKB450_080_205 base cylinder"
+  },
+  "step-node::0904BKB450_080_205行程杆": {
+    "slug": "0904bkb450-080-205-process-pole",
+    "name": "0904bkb450 080 205 Process Pole",
+    "translation": "0904BKB450_080_205 process pole"
+  },
+  "step-node::0904BKB450_080_205底筒鱼眼": {
+    "slug": "0904bkb450-080-205-bottom-eye",
+    "name": "0904bkb450 080 205 Bottom Eye",
+    "translation": "0904BKB450_080_205 Bottom Eye"
+  },
+  "step-node::0904F688ZZ": {
+    "slug": "0904f688zz",
+    "name": "0904f688zz",
+    "translation": "0904F688ZZ"
+  },
+  "step-node::09048x12x0.5": {
+    "slug": "09048x12x0.5",
+    "name": "09048x12x0.5",
+    "translation": "09048x12x0.5"
+  },
+  "step-node::0904BKB450_080_205行程杆鱼眼": {
+    "slug": "0904bkb450-080-205-traveler-eye",
+    "name": "0904bkb450 080 205 Traveler Eye",
+    "translation": "0904BKB450_080_205 Traveler Eye"
+  },
+  "step-node::0904HCDGH8-18": {
+    "slug": "0904hcdgh8-18",
+    "name": "0904hcdgh8 18",
+    "translation": "0904HCDGH8-18"
+  },
+  "step-node::0904GEN4膝关节螺母": {
+    "slug": "0904gen4-knee-joint-nut",
+    "name": "0904gen4 Knee Joint Nut",
+    "translation": "0904GEN4 knee joint nut"
+  },
+  "step-node::0904GEN4膝关节螺栓": {
+    "slug": "0904gen4-knee-joint-bolt",
+    "name": "0904gen4 Knee Joint Bolt",
+    "translation": "0904GEN4 knee joint bolt"
+  },
+  "step-node::0904烧饼小装甲-521(1)": {
+    "slug": "0904-pancake-mini-armor-521-1",
+    "name": "0904 Pancake Mini Armor 521 1",
+    "translation": "0904 Pancake mini armor 521 (1)"
+  },
+  "step-node::0904烧饼烧饼小装甲板支架(有胶垫)-521(1)": {
+    "slug": "0904-pancake-mini-armour-slabs-with-rubber-cushions-521-1",
+    "name": "0904 Pancake Mini Armour Slabs With Rubber Cushions 521 1",
+    "translation": "0904 Pancake mini-armour slabs (with rubber cushions) 521 (1)"
+  },
+  "step-node::0904dm8009": {
+    "slug": "0904dm8009",
+    "name": "0904dm8009",
+    "translation": "0904dm8009"
+  },
+  "step-node::0904GEN4小腿链轮": {
+    "slug": "0904gen4-calves",
+    "name": "0904gen4 Calves",
+    "translation": "0904GEN4 calves"
+  },
+  "step-node::0904GEN4大腿链轮": {
+    "slug": "0904gen4-leg-wheel",
+    "name": "0904gen4 Leg Wheel",
+    "translation": "0904GEN4 leg wheel"
+  },
+  "step-node::0904C620无刷电机调速器v1.4": {
+    "slug": "0904c620-unbrusher-modulator-v1.4",
+    "name": "0904c620 Unbrusher Modulator V1.4",
+    "translation": "0904C620 Unbrusher modulator v1.4"
+  },
+  "step-node::0904装甲板轴抱紧固定CNC": {
+    "slug": "0904-armorboard-axes-hold-the-cnc-tight",
+    "name": "0904 Armorboard Axes Hold The Cnc Tight",
+    "translation": "0904 Armorboard Axes, hold the CNC tight"
+  },
+  "step-node::0904侧面装甲板安装板": {
+    "slug": "armoured-panels-on-side-0904",
+    "name": "Armoured Panels On Side 0904",
+    "translation": "Armoured panels on side 0904"
+  },
+  "step-node::090410x14x1.5": {
+    "slug": "090410x14x1.5",
+    "name": "090410x14x1.5",
+    "translation": "090410x14x1.5"
+  },
+  "step-node::09048x8x40铝排": {
+    "slug": "09048x8x40-aluminium-platoons",
+    "name": "09048x8x40 Aluminium Platoons",
+    "translation": "09048x8x40 Aluminium platoons"
+  },
+  "step-node::0904GEN4右侧大腿18mmCNC": {
+    "slug": "0904gen4-right-thigh-18mmcnc",
+    "name": "0904gen4 Right Thigh 18mmcnc",
+    "translation": "0904GEN4 Right thigh 18mmCNC"
+  },
+  "step-node::0904GEN4右侧小腿15mm碳": {
+    "slug": "0904gen4-right-caliber-15mm-carbon",
+    "name": "0904gen4 Right Caliber 15mm Carbon",
+    "translation": "0904GEN4 Right caliber 15mm carbon"
+  },
+  "step-node::0904GEN4小腿连杆1": {
+    "slug": "0904gen4-calibration-1",
+    "name": "0904gen4 Calibration 1",
+    "translation": "0904GEN4 calibration 1"
+  },
+  "step-node::0904小腿连杆2": {
+    "slug": "0904-calibration-2",
+    "name": "0904 Calibration 2",
+    "translation": "0904 calibration 2"
+  },
+  "step-node::090410x14x2": {
+    "slug": "090410x14x2",
+    "name": "090410x14x2",
+    "translation": "090410x14x2"
+  },
+  "step-node::09043508转子保护": {
+    "slug": "09043508-rotor-protection",
+    "name": "09043508 Rotor Protection",
+    "translation": "09043508 rotor protection"
+  },
+  "step-node::0904GEN4左侧大腿18mmCNC": {
+    "slug": "0904gen4-left-thigh-18mmcnc",
+    "name": "0904gen4 Left Thigh 18mmcnc",
+    "translation": "0904GEN4 left thigh 18mmCNC"
+  },
+  "step-node::0904GEN4左侧小腿15mm碳": {
+    "slug": "0904gen4-left-calibration-15mm-carbon",
+    "name": "0904gen4 Left Calibration 15mm Carbon",
+    "translation": "0904GEN4 left calibration 15mm carbon"
+  },
+  "step-node::090427赛季平衡yaw轴CNC": {
+    "slug": "quarter-090427-balance-yaw-axis-ncc",
+    "name": "Quarter 090427 Balance Yaw Axis Ncc",
+    "translation": "Quarter 090427 balance yaw axis NCC"
+  },
+  "step-node::09047008交叉滚子": {
+    "slug": "09047008-cross-roll",
+    "name": "09047008 Cross Roll",
+    "translation": "09047008 Cross Roll"
+  },
+  "step-node::0904gt2045-S16-byzm": {
+    "slug": "0904gt2045-s16-byzm",
+    "name": "0904gt2045 S16 Byzm",
+    "translation": "0904gt2045-S16-byzm"
+  },
+  "step-node::090427赛季MG5010-i10YAW交滚模块": {
+    "slug": "mg5010-i10yaw-rolling-module-for-season-090427",
+    "name": "Mg5010 I10yaw Rolling Module For Season 090427",
+    "translation": "MG5010-i10YAW rolling module for season 090427"
+  },
+  "step-node::0904MG5010-i10": {
+    "slug": "0904mg5010-i10",
+    "name": "0904mg5010 I10",
+    "translation": "0904MG5010-i10"
+  },
+  "step-node::090427yaw加强板": {
+    "slug": "090427yaw-strengthening-board",
+    "name": "090427yaw Strengthening Board",
+    "translation": "090427yaw strengthening board"
+  },
+  "step-node::0904GEN3YAW轴压板": {
+    "slug": "0904gen3yaw-axis-plate",
+    "name": "0904gen3yaw Axis Plate",
+    "translation": "0904GEN3YAW Axis plate"
+  },
+  "step-node::0904解耦yaw45T主动同步轮": {
+    "slug": "0904-decomposing-yaw45t-active-synchronous-wheel",
+    "name": "0904 Decomposing Yaw45t Active Synchronous Wheel",
+    "translation": "0904 decomposing yaw45T active synchronous wheel"
+  },
+  "step-node::0904175mm供弹铝管": {
+    "slug": "0904175mm-aluminum-tubes",
+    "name": "0904175mm Aluminum Tubes",
+    "translation": "0904175mm aluminum tubes"
+  },
+  "step-node::0904yaw滑环止转柱": {
+    "slug": "0904yaw-landslide-rotor-pole",
+    "name": "0904yaw Landslide Rotor Pole",
+    "translation": "0904yaw landslide rotor pole"
+  },
+  "step-node::0904GEN4主体框架": {
+    "slug": "main-framework-0904gen4",
+    "name": "Main Framework 0904gen4",
+    "translation": "Main framework 0904GEN4"
+  },
+  "step-node::0904GEN4优化CNC角铝": {
+    "slug": "0904gen4-optimization-of-cnc-aluminum",
+    "name": "0904gen4 Optimization Of Cnc Aluminum",
+    "translation": "0904GEN4 Optimization of CNC aluminum"
+  },
+  "step-node::0904I 电源管理模块GEN2.0": {
+    "slug": "0904i-power-management-module-gen2.0",
+    "name": "0904i Power Management Module Gen2.0",
+    "translation": "0904I Power Management Module GEN2.0"
+  },
+  "step-node::0904复用26纵向铝方管导轮板簧嵌件": {
+    "slug": "0904-reuse-26-longitudinal-aluminium-tube-catheter-springs",
+    "name": "0904 Reuse 26 Longitudinal Aluminium Tube Catheter Springs",
+    "translation": "0904 Reuse 26 longitudinal aluminium tube catheter springs"
+  },
+  "step-node::090427轮腿尾部装甲板支架垫高": {
+    "slug": "090427-leg-tail-armored-mats-high",
+    "name": "090427 Leg Tail Armored Mats High",
+    "translation": "090427 leg tail armored mats high"
+  },
+  "step-node::0904RFID模块铝背壳": {
+    "slug": "aluminium-backpack-in-module-0904rfid",
+    "name": "Aluminium Backpack In Module 0904rfid",
+    "translation": "Aluminium backpack in module 0904RFID"
+  },
+  "step-node::0904RFID模块-521_預設": {
+    "slug": "0904rfid-module-521-present",
+    "name": "0904rfid Module 521 Present",
+    "translation": "0904RFID Module 521_Present"
+  },
+  "step-node::0904走线导向CNC&内嵌螺纹": {
+    "slug": "0904-lined-to-cnc-embedded-screws",
+    "name": "0904 Lined To Cnc Embedded Screws",
+    "translation": "0904 lined to CNC & embedded screws"
+  },
+  "step-node::0904复用26down板簧": {
+    "slug": "0904-returns-to-26down-spring",
+    "name": "0904 Returns To 26down Spring",
+    "translation": "0904 returns to 26down spring"
+  },
+  "step-node::0904复用26top板簧": {
+    "slug": "0904-repeat-26top-spring",
+    "name": "0904 Repeat 26top Spring",
+    "translation": "0904 repeat 26top spring"
+  },
+  "step-node::090427板簧导轮10mmAL": {
+    "slug": "090427-spring-conductor-10mmal",
+    "name": "090427 Spring Conductor 10mmal",
+    "translation": "090427 spring conductor 10mmAL"
+  },
+  "step-node::0904板簧铰支座": {
+    "slug": "0904-springs",
+    "name": "0904 Springs",
+    "translation": "0904 springs"
+  },
+  "step-node::0904PU60832-12C1.5L10M8": {
+    "slug": "0904pu60832-12c1.5l10m8",
+    "name": "0904pu60832 12c1.5l10m8",
+    "translation": "0904PU60832-12C1.5L10M8"
+  },
+  "step-node::0904GEN4车架电源TB48S": {
+    "slug": "0904gen4-power-source-tb48s",
+    "name": "0904gen4 Power Source Tb48s",
+    "translation": "0904GEN4 power source TB48S"
+  },
+  "step-node::0904L改L10齿小拨LQR小拨盘下半V2.1": {
+    "slug": "0904l-to-l10-lqr-lower-half-v2.1",
+    "name": "0904l To L10 Lqr Lower Half V2.1",
+    "translation": "0904L to L10, LQR, lower half V2.1"
+  },
+  "step-node::0904L改L10齿小拨LQR小拨盘拨齿V2.0_4010版本": {
+    "slug": "0904l-to-l10-lqr-version-v2.0-4010",
+    "name": "0904l To L10 Lqr Version V2.0 4010",
+    "translation": "0904L to L10, LQR, version V2.0_4010"
+  },
+  "step-node::0904RNA4902": {
+    "slug": "0904rna4902",
+    "name": "0904rna4902",
+    "translation": "0904RNA4902"
+  },
+  "step-node::0904MG4010-i10 (2)": {
+    "slug": "0904mg4010-i10-2",
+    "name": "0904mg4010 I10 2",
+    "translation": "0904MG4010-i10 (2)"
+  },
+  "step-node::090427小拨盘上升段": {
+    "slug": "090427-dial-up-sector",
+    "name": "090427 Dial Up Sector",
+    "translation": "090427 Dial Up Sector"
+  },
+  "step-node::090427抗弯弹链": {
+    "slug": "090427-anti-bowling-chain",
+    "name": "090427 Anti Bowling Chain",
+    "translation": "090427 anti-bowling chain"
+  },
+  "step-node::090426混合定心prefabrication打印版本": {
+    "slug": "090426-mixed-prefabrication",
+    "name": "090426 Mixed Prefabrication",
+    "translation": "090426 Mixed prefabrication"
+  },
+  "step-node::090426混合定心prefabrication充能安装座": {
+    "slug": "mixtures-prefabrication-installed-seats",
+    "name": "Mixtures Prefabrication Installed Seats",
+    "translation": "Mixtures prefabrication installed seats"
+  },
+  "step-node::09041029RM2019裁判系统测速模块SM01(1)": {
+    "slug": "09041029rm2019-speeding-module-sm01-1",
+    "name": "09041029rm2019 Speeding Module Sm01 1",
+    "translation": "09041029RM2019 Speeding module SM01 (1)"
+  },
+  "step-node::0904复件 大弹丸发射摩擦轮": {
+    "slug": "zero-zero-zero-zero-zero-zero-zero",
+    "name": "Zero Zero Zero Zero Zero Zero Zero",
+    "translation": "Zero, zero, zero, zero, zero, zero, zero"
+  },
+  "step-node::0904相机图传模块 VT03": {
+    "slug": "vt03-camera-fax-module-0904",
+    "name": "Vt03 Camera Fax Module 0904",
+    "translation": "VT03 Camera Fax Module 0904"
+  },
+  "step-node::09044x13x6x7定心轴承": {
+    "slug": "09044x13x6x7-fixed-core-bearings",
+    "name": "09044x13x6x7 Fixed Core Bearings",
+    "translation": "09044x13x6x7 fixed core bearings"
+  },
+  "step-node::090427步兵云台电气仓": {
+    "slug": "infantry-cloud-station-electrical-warehouse-090427",
+    "name": "Infantry Cloud Station Electrical Warehouse 090427",
+    "translation": "Infantry Cloud Station electrical warehouse 090427"
+  },
+  "step-node::0904MV-CS016-10UMUCAug.6th": {
+    "slug": "0904mv-cs016-10umucaug.6th",
+    "name": "0904mv Cs016 10umucaug.6th",
+    "translation": "0904MV-CS016-10UMUCAug.6th"
+  },
+  "step-node::0904快拆相机IMU模块CNC": {
+    "slug": "0904-dismantling-camera-imu-module-cnc",
+    "name": "0904 Dismantling Camera Imu Module Cnc",
+    "translation": "0904 Dismantling camera IMU module CNC"
+  },
+  "step-node::0904CH040载板_减震球反装": {
+    "slug": "0904ch040-panel-shock-loss-ball-inverse",
+    "name": "0904ch040 Panel Shock Loss Ball Inverse",
+    "translation": "0904CH040 panel _shock loss ball inverse"
+  },
+  "step-node::09046x6x40铝排": {
+    "slug": "09046x6x40-aluminium-platoon",
+    "name": "09046x6x40 Aluminium Platoon",
+    "translation": "09046x6x40 Aluminium platoon"
+  },
+  "step-node::0904F686ZZW3.5": {
+    "slug": "0904f686zzw3.5",
+    "name": "0904f686zzw3.5",
+    "translation": "0904F686ZZW3.5"
+  },
+  "step-node::0904C620无刷电机调速器带保护": {
+    "slug": "0904c620-without-charger-modulator-belt-protection",
+    "name": "0904c620 Without Charger Modulator Belt Protection",
+    "translation": "0904C620 without charger modulator belt protection"
+  },
+  "step-node::09047.263D_灯板_2026-07-12": {
+    "slug": "090447.263d-lightboard-2026-07-12",
+    "name": "090447.263d Lightboard 2026 07 12",
+    "translation": "090447.263D_lightboard_2026-07-12"
+  },
+  "step-node::0904云台全集成分电板_2026-07-31": {
+    "slug": "complete-component-left-2026-07-31",
+    "name": "Complete Component Left 2026 07 31",
+    "translation": "COMPLETE COMPONENT LEFT _2026-07-31"
+  },
+  "step-node::0904云台CtrBoard-H7": {
+    "slug": "ctrboard-h7",
+    "name": "Ctrboard H7",
+    "translation": "CtrBoard-H7"
+  },
+  "step-node::09043D_FT232下载器V1.1_2026-07-29": {
+    "slug": "09043d-ft232-downloader-v1.1-2026-07-29",
+    "name": "09043d Ft232 Downloader V1.1 2026 07 29",
+    "translation": "09043D_FT232 Downloader V1.1_2026-07-29"
+  },
+  "step-node::0904小电脑快拆导轨": {
+    "slug": "all-right-we-ve-got-a-9-0-0-0-0-0-0-0",
+    "name": "All Right We Ve Got A 9 0 0 0 0 0 0 0",
+    "translation": "All right, we've got a 9-0-0-0-0-0-0-0"
+  },
+  "step-node::0904ut100-ca-r101-3d-带散热器20240428-jm": {
+    "slug": "0904ut100-ca-r101-3d-scattered-heater-2020428-jm",
+    "name": "0904ut100 Ca R101 3d Scattered Heater 2020428 Jm",
+    "translation": "0904ut100-ca-r101-3d-scattered heater 2020428-jm"
+  },
+  "step-node::090427NUC机箱": {
+    "slug": "box-090427nc",
+    "name": "Box 090427nc",
+    "translation": "Box 090427NC"
+  },
+  "step-node::0904SentryVersion小电脑降压v2.0": {
+    "slug": "0904sentryversion-minicomputer-pressure-reliefv2.0",
+    "name": "0904sentryversion Minicomputer Pressure Reliefv2.0",
+    "translation": "0904SentryVersion Minicomputer pressure reliefv2.0"
+  },
+  "step-node::0904小电脑快拆导条": {
+    "slug": "all-right-we-re-gonna-need-a-9-0-0-0-0-0-0",
+    "name": "All Right We Re Gonna Need A 9 0 0 0 0 0 0",
+    "translation": "All right, we're gonna need a 9-0-0-0-0-0-0"
+  },
+  "step-node::0904DM-J4310-2EC-V1.1&V1.2": {
+    "slug": "0904dm-j4310-2ec-v1.1-v1.2",
+    "name": "0904dm J4310 2ec V1.1 V1.2",
+    "translation": "0904DM-J4310-2EC-V1.1&V1.2"
+  },
+  "step-node::0904复用26鹅颈下滑槽": {
+    "slug": "0904-returns-the-26-goose-neck-drop",
+    "name": "0904 Returns The 26 Goose Neck Drop",
+    "translation": "0904 returns the 26 Goose neck drop"
+  },
+  "step-node::0904复用26鹅颈上滑槽": {
+    "slug": "0904-returns-the-slider-on-the-neck-of-26-geese",
+    "name": "0904 Returns The Slider On The Neck Of 26 Geese",
+    "translation": "0904 returns the slider on the neck of 26 geese"
+  },
+  "step-node::090427云台40mm曲柄": {
+    "slug": "090427-cloud-40mm",
+    "name": "090427 Cloud 40mm",
+    "translation": "090427 cloud 40mm"
+  },
+  "step-node::090492.63mm连杆": {
+    "slug": "090492.63mm",
+    "name": "090492.63mm",
+    "translation": "090492.63mm"
+  },
+  "step-node::0904轴承垫片6x8x1": {
+    "slug": "904-bearing-gaskets-6x8x1",
+    "name": "904 Bearing Gaskets 6x8x1",
+    "translation": "904 bearing gaskets 6x8x1"
+  },
+  "step-node::09046x10x8": {
+    "slug": "09046x10x8",
+    "name": "09046x10x8",
+    "translation": "09046x10x8"
+  },
+  "step-node::0904UWB定位模块(PJ) - 下供弹": {
+    "slug": "0904-uwb-positioning-module-pj-lower-bomb",
+    "name": "0904 Uwb Positioning Module Pj Lower Bomb",
+    "translation": "0904 UWB Positioning Module (PJ) - Lower Bomb"
+  },
+  "step-node::0904裁判系统灯条模块LI01": {
+    "slug": "0904-tribune-system-lamp-module-li01",
+    "name": "0904 Tribune System Lamp Module Li01",
+    "translation": "0904 Tribune system lamp module LI01"
+  },
+  "step-node::0904CH040载板_底盘": {
+    "slug": "0904ch040-panel-chassis",
+    "name": "0904ch040 Panel Chassis",
+    "translation": "0904CH040 panel _ chassis"
+  },
+  "step-node::0904GEN4底部横梁": {
+    "slug": "0904gen4-bottom-beam",
+    "name": "0904gen4 Bottom Beam",
+    "translation": "0904GEN4 Bottom beam"
+  },
+  "step-node::0904导轮铝方嵌件": {
+    "slug": "aluminium-embedding-for-the-conductor-0904",
+    "name": "Aluminium Embedding For The Conductor 0904",
+    "translation": "Aluminium embedding for the conductor 0904"
+  },
+  "step-node::0904电管分电板2分4": {
+    "slug": "0904-power-lines-two-minutes-four-minutes",
+    "name": "0904 Power Lines Two Minutes Four Minutes",
+    "translation": "0904 power lines, two minutes, four minutes"
+  },
+  "step-node::0904I主控模块": {
+    "slug": "0904i-master-control-module",
+    "name": "0904i Master Control Module",
+    "translation": "0904I master control module"
+  },
+  "step-node::0904主控防撞框": {
+    "slug": "0904-master-collision-frame",
+    "name": "0904 Master Collision Frame",
+    "translation": "0904 Master Collision Frame"
+  },
+  "step-node::0904KLR28-36锌合金铰链": {
+    "slug": "0904-klr28-36-zinc-alloy-chain",
+    "name": "0904 Klr28 36 Zinc Alloy Chain",
+    "translation": "0904 KLR28-36 Zinc Alloy Chain"
+  },
+  "step-node::0904A包胶轮--BK-PU62626-8--6-26-8": {
+    "slug": "0904a-packs-of-tankers-bk-pu62626-8-6-26-8",
+    "name": "0904a Packs Of Tankers Bk Pu62626 8 6 26 8",
+    "translation": "0904A packs of tankers - BK-PU62626-8 - 6-26-8"
+  },
+  "step-node::0904RM2027_Supercapacitor_Module_10S": {
+    "slug": "0904rm2027-supercapacitor-module-10s",
+    "name": "0904rm2027 Supercapacitor Module 10s",
+    "translation": "0904RM2027_Supercapacitor_Module_10S"
+  },
+  "step-node::090427超电电容组底座": {
+    "slug": "090427-ultraelectric-capacitive-base",
+    "name": "090427 Ultraelectric Capacitive Base",
+    "translation": "090427 Ultraelectric Capacitive Base"
+  },
+  "step-node::0904简化装配体达妙分CAN板_2025-11-21": {
+    "slug": "0904-simplified-assembly-substrate-can-plate-2025-11-21",
+    "name": "0904 Simplified Assembly Substrate Can Plate 2025 11 21",
+    "translation": "0904 Simplified assembly substrate CAN plate _2025-11-21"
+  },
+  "step-node::0904底盘卡扣式CtrBoard-H7": {
+    "slug": "ctrboard-h7",
+    "name": "Ctrboard H7",
+    "translation": "CtrBoard-H7"
+  },
+  "step-node::0904H7散热模块": {
+    "slug": "0904h7-dissipation-module",
+    "name": "0904h7 Dissipation Module",
+    "translation": "0904H7 dissipation module"
+  },
+  "step-node::0904撞击门销": {
+    "slug": "0904-impact-door-sales",
+    "name": "0904 Impact Door Sales",
+    "translation": "0904 impact door sales"
+  },
+  "step-node::0904TOFSense_M_S_Appearance_V1.0": {
+    "slug": "0904tofsense-m-s-appearance-v1.0",
+    "name": "0904tofsense M S Appearance V1.0",
+    "translation": "0904TOFSense_M_S_Appearance_V1.0"
+  },
+  "step-node::090427超电功控板": {
+    "slug": "superpower-board-090427",
+    "name": "Superpower Board 090427",
+    "translation": "Superpower board 090427"
+  },
+  "step-node::0904AssenGEN4": {
+    "slug": "0904assengen4",
+    "name": "0904assengen4",
+    "translation": "0904AssenGEN4"
+  },
+  "step-node::0904Assem27LQR右腿": {
+    "slug": "0904-assem27lqr-right-leg",
+    "name": "0904 Assem27lqr Right Leg",
+    "translation": "0904 Assem27LQR right leg"
+  },
+  "step-node::0904Assem_helios_gear_P16.33": {
+    "slug": "0904assem-helios-gear-p16.33",
+    "name": "0904assem Helios Gear P16.33",
+    "translation": "0904Assem_helios_gear_P16.33"
+  },
+  "step-node::0904BKB450_080_205": {
+    "slug": "0904bkb450-080-205",
+    "name": "0904bkb450 080 205",
+    "translation": "0904BKB450_080_205"
+  },
+  "step-node::0904小装甲装配(1)": {
+    "slug": "0904-small-armour-assembly-1",
+    "name": "0904 Small Armour Assembly 1",
+    "translation": "0904 Small armour assembly (1)"
+  },
+  "step-node::0904Assem27LQR左腿": {
+    "slug": "0904-assem27lqr-left-leg",
+    "name": "0904 Assem27lqr Left Leg",
+    "translation": "0904 Assem27LQR left leg"
+  },
+  "step-node::090427平衡yaw总装": {
+    "slug": "090427-balanceyyaw-total",
+    "name": "090427 Balanceyyaw Total",
+    "translation": "090427 Balanceyyaw Total"
+  },
+  "step-node::090427轮腿尾部小装甲装配": {
+    "slug": "090427-leg-tail-small-armored-assembly",
+    "name": "090427 Leg Tail Small Armored Assembly",
+    "translation": "090427 leg tail small armored assembly"
+  },
+  "step-node::090427赛季L改L10齿小拨装配体": {
+    "slug": "quarter-090427-l-to-l10-small-assembly",
+    "name": "Quarter 090427 L To L10 Small Assembly",
+    "translation": "Quarter 090427, L to L10, small assembly"
+  },
+  "step-node::0904Assem鹅颈云台GEN6": {
+    "slug": "gen6",
+    "name": "Gen6",
+    "translation": "GEN6"
+  },
+  "step-node::090427AssemPitch": {
+    "slug": "090427assempitch",
+    "name": "090427assempitch",
+    "translation": "090427AssemPitch"
+  },
+  "step-node::0904战术快拆小电脑": {
+    "slug": "0904-take-down-the-little-computer",
+    "name": "0904 Take Down The Little Computer",
+    "translation": "0904, take down the little computer"
+  },
+  "step-node::0904Assem27超电电容组": {
+    "slug": "0904-assem27-ultraelectric-capability-group",
+    "name": "0904 Assem27 Ultraelectric Capability Group",
+    "translation": "0904 Assem27 Ultraelectric Capability Group"
+  },
+  "step-node::0904底盘H7模组带散热": {
+    "slug": "0904-chassis-h7-module-dissipation",
+    "name": "0904 Chassis H7 Module Dissipation",
+    "translation": "0904 chassis H7 module dissipation"
+  },
+  "0904AssenGEN4.STEP": {
+    "slug": "0904-assengen4",
+    "name": "0904 Assen GEN4",
+    "translation": "0904 Assen GEN4"
   }
 }

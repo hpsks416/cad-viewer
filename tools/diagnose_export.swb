@@ -1,0 +1,39 @@
+Sub main()
+    Dim msg As String
+    msg = ""
+
+    ' [1] Application.SldWorks
+    Dim swApp As Object
+    Set swApp = Nothing
+    On Error Resume Next
+    Set swApp = Application.SldWorks
+    If Err.Number <> 0 Then
+        msg = msg & "[1] Application.SldWorks ERROR " & Err.Number & ": " & Err.Description & vbCrLf
+        Err.Clear
+    ElseIf swApp Is Nothing Then
+        msg = msg & "[1] Application.SldWorks = Nothing" & vbCrLf
+    Else
+        msg = msg & "[1] Application.SldWorks = OK" & vbCrLf
+    End If
+
+    ' [2] ActiveDoc
+    Dim swModel As Object
+    Set swModel = Nothing
+    On Error Resume Next
+    Set swModel = swApp.ActiveDoc
+    If Err.Number <> 0 Then
+        msg = msg & "[2] ActiveDoc ERROR " & Err.Number & ": " & Err.Description & vbCrLf
+        Err.Clear
+    ElseIf swModel Is Nothing Then
+        msg = msg & "[2] ActiveDoc = Nothing" & vbCrLf
+    Else
+        msg = msg & "[2] ActiveDoc title = " & swModel.GetTitle & vbCrLf
+        msg = msg & "[3] GetType = " & swModel.GetType & "   (1=part 2=assembly 3=drawing)" & vbCrLf
+        Dim p As String
+        p = swModel.GetPathName
+        msg = msg & "[4] GetPathName = " & p & vbCrLf
+    End If
+    On Error GoTo 0
+
+    MsgBox msg, vbInformation, "Export macro diagnostic"
+End Sub
