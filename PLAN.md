@@ -18,7 +18,14 @@
     ├── index.html / main.js / batch.js    # 查看器 + 批量导出面板
     ├── lib/                               # three.js 及 addons（本地化）
     ├── viewer/
-    │   └── joints.js                      # 可动关节滑块面板（已实现）
+    │   ├── joints.js                      # 可动关节（revolute/continuous/prismatic/ball…）
+│   ├── scene-tree.js                  # 场景树（层级/高亮/显隐）
+│   ├── section.js                     # 剖切（clipPlane）
+│   ├── explode.js                     # 爆炸视图
+│   ├── fpv.js                         # 第一人称相机
+│   ├── measure.js                     # 测量（两点测距）
+│   ├── step-import.js                 # 浏览器内 STEP 解析（occt-import-js WASM）
+│   └── materials.js / state.js / panels.js  # 材质/状态/面板
     ├── models/                            # 生成的 .glb
     │   ├── manifest.json                  # 模型清单
     │   └── <slug>.{glb,joints.json,meta.json}
@@ -105,14 +112,18 @@ RoboMaster 典型关节：云台 yaw/pitch、轮子连续转、舱盖/弹舱铰�
 | 模块 | 说明 | 状态 |
 |---|---|---|
 | 渲染底座 | three.js + PBR + ACES + IBL(RoomEnvironment) | ✅ |
-| 模型加载/取景 | GLTFLoader/STLLoader + 自动框选 | ✅ |
-| 批量导出面板 | 读 /api/files，勾选批量转换 | ✅ |
-| 关节控制 | 读 joints.json，滑块驱动节点 | ✅ |
-| 场景树 | 部件层级、点击高亮、单独显示/隐藏 | ⏳ 未实现 |
-| 剖切 | clipPlane 平面剖切 | ⏳ 未实现 |
-| 爆炸视图 | 沿装配方向平移部件 | ⏳ 未实现 |
+| 模型加载/取景 | GLTFLoader/STLLoader + Draco/meshopt 解压 + 自动框选 | ✅ |
+| 浏览器 STEP 导入 | occt-import-js WASM 直解 .step/.stp（无 Blender） | ✅ |
+| 批量导出面板 | 读 /api/files，勾选批量转换，meshopt/draco 压缩预设 | ✅ |
+| 关节控制 | 读 joints.json / URDF，滑块驱动节点 | ✅ |
+| 场景树 | 部件层级、点击高亮、单独显示/隐藏 | ✅ |
+| 剖切 | clipPlane 平面剖切（XZ/XY/YZ/斜平面） | ✅ |
+| 爆炸视图 | 沿径向/X/Y/Z 展开，强度可调 | ✅ |
+| 材质库 | 颜色/金属度/粗糙度解耦 + 贴图，本地持久化 | ✅ |
+| 驾驶模式 | 碰撞体积 + 空气墙，WASD | ✅ |
+| FPV 相机 | 第一人称锚点 + 第三人称可视化 | ✅ |
 | 热点标注 | 点击部件显示文字说明 | ⏳ 未实现 |
-| 测量 | 点选两点测距 | ⏳ 未实现（可选） |
+| 测量 | 点选两点测距 | ✅ |
 | 部署 | GitHub Pages + 简历化 README | ⏳ |
 
 ## 7. 里程碑
@@ -121,7 +132,7 @@ RoboMaster 典型关节：云台 yaw/pitch、轮子连续转、舱盖/弹舱铰�
 - **M1 首次手动导出** ✅ 单零件 STL 带材质跑进浏览器。
 - **M2 装配体 + 材质** ✅ STEP AP214 保留 product 层级与面颜色，presets 升级 PBR。
 - **M3 一键自动化** ✅ python run.py 串起「扫描 → 翻译 → 转换 → manifest → 查看器」，含批量可视化界面。
-- **M4 查看器交互** 🔶 关节已完成；场景树/剖切/爆炸/标注待做。
+- **M4 查看器交互** ✅ 关节、场景树、剖切、爆炸视图、材质库、场地背景与虚化、驾驶模式、FPV、测量已完成；待做：热点标注。
 - **M5 上线** ⏳ GitHub Pages 在线演示 + 简历化 README。
 
 ## 8. 手动走一遍（装配体）
@@ -157,7 +168,7 @@ RoboMaster 典型关节：云台 yaw/pitch、轮子连续转、舱盖/弹舱铰�
 ## 10. 风险与边界
 
 - **STEP 颜色丢失**：AP214 之外的部分格式可能不带面颜色，此时 fallback 到 presets.json 默认色。
-- **大装配体性能**：后续加 Draco 压缩 + 实例化 + three-mesh-bvh。
+- **大装配体性能**：Draco/meshopt 网格压缩已实现（转换预设 + 前端 loader）；LOD、three-mesh-bvh 拾取加速、实例化后续；纹理 KTX2/basisu 对纯 STEP 面颜色场景不适用（无纹理可压）。
 - **关节轴朝向**：axis 是节点局部系，真实关节要按子装配体朝向微调。
 - **SolidWorks 版本差异**：导出选项叫法不同，以「能导出 STEP AP214 或 STL」为准。
 

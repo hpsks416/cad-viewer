@@ -12,6 +12,8 @@ import { initExplode, setModelExplode, clearExplode } from './viewer/explode.js'
 import { initFpv, setModelFpv, clearFpv, getEyeWorld, getDirection, getYawPitch, setYawPitch, updateGizmo } from './viewer/fpv.js';
 import { initMaterials, setCurrentModelId, selectModelPart, selectPart, applyOverrides } from './viewer/materials.js';
 import { loadState, getInitialPlacement, setInitialPlacement, clearInitialPlacement } from './viewer/state.js';
+import { importStepFile, importStepUrl } from './viewer/step-import.js';
+import { initMeasure, isMeasureEnabled, addMeasurePoint, clearMeasure } from './viewer/measure.js';
 
 // 固定背景场景（仅渲染，不参与拾取 / 剖切 / 场景树 / 关节）。
 const BACKGROUND = {
@@ -256,6 +258,7 @@ function applyMeters(root, maxDimMm) {
 function replaceLoaded(root) {
   const prev = scene.getObjectByName('__loaded__');
   if (prev) scene.remove(prev);
+  clearMeasure();
   root.name = '__loaded__';
   scene.add(root);
   modelHalfExtents = null;
@@ -361,6 +364,42 @@ function loadFile(url, filename) {
   else loadGltf(url, undefined, undefined, undefined, filename);
 }
 
+// 浏览器内直接解析 STEP/STP（occt-import-js WASM），无需 Blender / OCP 服务端。
+// src 可为 File（本地拖拽/选择）或 URL 字符串（如 GitHub Pages 演示 ?step=）。
+async function loadStep(src, id) {
+  setLoading(true);
+  clearJoints();
+  clearSceneTree();
+  clearSection();
+  clearExplode();
+  clearFpv();
+  try {
+    const { group, parts } = (typeof src === 'string')
+      ? await importStepUrl(src)
+      : await importStepFile(src);
+    replaceLoaded(group);
+    currentMeta = null;
+    frameObject(group);
+    setModelSection(group);
+    setModelExplode(group);
+    setModelFpv(group);
+    renderSceneTree(group, parts);
+    setCurrentModelId(id);
+    applyOverrides(group, 'model:' + (id || 'local'));
+  } catch (err) {
+    console.error(err);
+    alert('STEP 加载失败：' + ((err && err.message) ? err.message : err));
+  } finally {
+    setLoading(false);
+  }
+}
+
+function loadLocalFile(f) {
+  const ext = extOf(f.name);
+  if (ext === 'step' || ext === 'stp') loadStep(f, f.name);
+  else loadFile(URL.createObjectURL(f), f.name);
+}
+
 // 点击场地放置机器人（背景仅作一次性射线取点，不改动其余功能语义）。
 let placeMode = false;
 let bgMatMode = false;
@@ -401,7 +440,7 @@ function syncModeButtons() {
   const fpvHint = document.getElementById('fpvHint');
   if (fpvHint) fpvHint.style.display = fpvMode ? 'block' : 'none';
   if (!bgMatMode) clearBgSelection();
-  renderer.domElement.style.cursor = (placeMode || bgMatMode) ? 'crosshair' : ((driveMode || fpvMode) ? 'move' : '');
+  renderer.domElement.style.cursor = (driveMode || fpvMode) ? 'move' : ((placeMode || bgMatMode || isMeasureEnabled()) ? 'crosshair' : '');
 }
 const resetPlaceBtn = document.getElementById('resetPlaceBtn');
 if (resetPlaceBtn) {
@@ -783,14 +822,14 @@ document.getElementById('resetView').addEventListener('click', () => {
 const fileInput = document.getElementById('fileInput');
 fileInput.addEventListener('change', () => {
   const f = fileInput.files[0];
-  if (f) loadFile(URL.createObjectURL(f), f.name);
+  if (f) loadLocalFile(f);
 });
 
 window.addEventListener('dragover', (e) => { e.preventDefault(); });
 window.addEventListener('drop', (e) => {
   e.preventDefault();
   const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-  if (f) loadFile(URL.createObjectURL(f), f.name);
+  if (f) loadLocalFile(f);
 });
 
 window.addEventListener('resize', () => {
@@ -906,6 +945,18 @@ renderer.domElement.addEventListener('pointerup', (e) => {
     return;
   }
 
+  // 测量模式：点选模型表面记录测距点（优先级在零件选中之前）。
+  if (isMeasureEnabled()) {
+    const mroot = scene.getObjectByName('__loaded__');
+    if (mroot) {
+      const mlist = [];
+      mroot.traverse(o => { if (o.isMesh && !isBackground(o)) mlist.push(o); });
+      const mhits = raycaster.intersectObjects(mlist, false);
+      if (mhits.length) addMeasurePoint(mhits[0].point);
+    }
+    return;
+  }
+
   const loaded = scene.getObjectByName('__loaded__');
   if (!loaded) return;
   const meshes = [];
@@ -921,6 +972,7 @@ initSection(renderer, 'sectionPanel');
 initExplode('explodePanel');
 initFpv('fpvPanel', scene);
 initMaterials('materialPanel');
+initMeasure(scene, 'measurePanel', () => syncModeButtons());
 
 // Arena occlusion fade: when the camera dips below the model's floor level,
 // fade the arena so the model stays visible (common 3D viewer behavior).
@@ -979,7 +1031,11 @@ function animate() {
 animate();
 loadState().then(() => {
   loadBackground();
-  loadManifest();
+  // 支持 ?step=<url> 在启动时直接加载 STEP（GitHub Pages 在线演示用）；
+  // 无参数时回落到 models/manifest.json 常规清单。
+  const stepParam = new URLSearchParams(location.search).get('step');
+  if (stepParam) loadStep(stepParam, stepParam);
+  else loadManifest();
 });
 
 window.CADViewer = { loadManifest };

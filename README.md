@@ -15,11 +15,13 @@ SolidWorks 导出 STEP AP214（装配体）
 ## 功能特性
 
 - 支持 `STL`（单零件）与 `STEP AP214`（多零件装配体，保留原生面颜色）
+- **浏览器内 STEP 直接导入**：拖入 `.step/.stp` 即可在浏览器解析（occt-import-js WASM），保留装配层级与 AP214 面颜色，**无需 Blender / OCP 服务端**
 - 中文零件名 **本地离线翻译**（CTranslate2 + SentencePiece + OPUS/Argos，不依赖在线 API）
 - 完整保留装配层级，并生成场景树
 - **可动关节**：单自由度 `revolute` / `continuous` / `prismatic`，多自由度 `ball`（球铰）/ `universal`（万向节）/ `cylindrical`（圆柱副）；支持 `origin {xyz,rpy}`（URDF 语义）精确定义关节坐标系；转轴标记、拖动交互、多自由度滑块与约束校验
 - **剖切视图**：默认 XZ 平面，可切换 XY / YZ / 斜平面
 - **爆炸视图**：装配体部件沿径向 / X / Y / Z 向外展开，强度可调
+- **测量**：在模型表面点两点测距（毫米读数）
 - **材质库**：颜色 / 金属度 / 粗糙度三者解耦，法线 + 粗糙度贴图（triplanar 采样），导入本地贴图，材质结果本地持久化
 - 比赛场地背景 + 低视角自动虚化
 - **驾驶模式**：碰撞体积 + 场地边界空气墙，WASD 移动、空格跳跃
@@ -213,7 +215,7 @@ cad-viewer/
 - **M1 首次手动导出** ✅ 单零件 STL 带材质进浏览器
 - **M2 装配体 + 材质** ✅ STEP AP214 保留层级与面颜色，presets 升级 PBR
 - **M3 一键自动化** ✅ `python run.py` 串起扫描 → 翻译 → 转换 → manifest → 查看器
-- **M4 查看器交互** ✅ 已完成：关节、场景树、剖切、爆炸视图、材质库、场地背景与虚化；大型装配体（3000 实体总装）端到端已验证；待做：热点标注、测量
+- **M4 查看器交互** ✅ 已完成：关节、场景树、剖切、爆炸视图、材质库、场地背景与虚化、测量；大型装配体（3000 实体总装）端到端已验证；待做：热点标注
 - **M5 上线** ⏳ GitHub Pages 在线演示 + 简历化 README
 
 ## 提交 GitHub 前（打包说明）
@@ -278,6 +280,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File create-desktop-shortcut-sim.
 - [六底座 ↔ 本项目架构对照](./docs/six-pillars-architecture.md)
 - [驾驶 + 关节统一状态机](./docs/robot-state-machine.md)
 
+## 浏览器内 STEP 导入（无 Blender）
+
+除服务端转换外，查看器也能**在浏览器里直接解析 STEP**：拖入 `.step/.stp` 文件（或访问 `?step=<url>`）即用 occt-import-js（WASM，LGPL-2.1）解析装配层级 + AP214 面颜色，**无需安装 Blender / OCP 服务端**。
+
+```bash
+# 首次需下载 WASM 解析器（约 7.6MB，之后离线可用）
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/download-occt.ps1
+```
+
+下载后 `lib/occt/` 内会出现 `occt-import-js.js` 与 `.wasm`。删除该目录不影响 GLB/STL 查看。许可证见 [NOTICE.md](./NOTICE.md)。
+
+## GitHub Pages 在线演示
+
+仓库根目录即查看器，配置 GitHub Pages（Settings → Pages → Source 选 "GitHub Actions"）后自动部署（见 `.github/workflows/pages.yml`）。因为 STEP 可在浏览器直解，演示**无需预置 GLB**：
+
+```
+https://<user>.github.io/cad-viewer/?step=assets/export/test_assembly.step
+```
+
+需满足：① `lib/occt/`（`download-occt.ps1` 产出）已提交；② `assets/export/test_assembly.step`（26KB 小样例）已提交。
+
 ## License
 
-[MIT](./LICENSE) © 2026 hpsks416
+本项目代码 MIT © 2026 hpsks416。`lib/occt/` 为 LGPL-2.1 第三方组件，详见 [NOTICE.md](./NOTICE.md)。

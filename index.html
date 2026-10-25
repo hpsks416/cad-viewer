@@ -226,6 +226,10 @@
     .h-ok.err { color: #e06c6c; }
     .h-meta { color: #8a8a94; white-space: nowrap; }
     .history-empty { font-size: 11px; color: #7a7a84; }
+    .measure-hint { font-size: 11px; color: #8a8a94; line-height: 1.5; margin-top: 4px; }
+    .measure-list { list-style: none; margin: 6px 0 0; padding: 0; font-size: 12px; color: #ffd34d; }
+    .measure-list li { padding: 2px 0; }
+    .measure-clear { margin-top: 8px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
   </style>
   <script type="importmap">
   {
@@ -235,6 +239,7 @@
     }
   }
   </script>
+  <script src="./lib/occt/occt-import-js.js"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -338,6 +343,13 @@
       </div>
       <div class="panel-body"></div>
     </div>
+    <div id="measurePanel" class="panel">
+      <div class="panel-head">
+        <div class="panel-title">测量</div>
+        <button class="panel-min" type="button" title="最小化/展开">—</button>
+      </div>
+      <div class="panel-body"></div>
+    </div>
   </div>
 
   <div id="batchPanel" class="batch-overlay">
@@ -404,10 +416,10 @@
   </div>
 
   <div id="loading">加载中…</div>
-  <div class="hint">左键旋转 / 滚轮缩放 / 右键平移 · 拖动关节高亮环旋转 · 拖拽 .glb / .stl 到窗口也可加载</div>
+  <div class="hint">左键旋转 / 滚轮缩放 / 右键平移 · 拖动关节高亮环旋转 · 拖拽 .glb / .stl / .step 到窗口也可加载</div>
   <div id="driveHint" class="drive-hint" style="display:none">驾驶模式：W/↑ 前进 · S/↓ 后退 · A/← 左移 · D/→ 右移 · 空格 跳跃 · 鼠标左键环绕视角 · 滚轮缩放 · 速度 <span id="driveSpeed">0.0</span> m/s</div>
   <div id="fpvHint" class="drive-hint" style="display:none">第一人称：W/↑ 前进 · S/↓ 后退 · A/← 左移 · D/→ 右移 · 空格 跳跃 · 鼠标左键拖动看四周 · 速度 <span id="fpvSpeed">0.0</span> m/s</div>
-  <input id="fileInput" type="file" accept=".glb,.gltf,.stl" hidden />
+  <input id="fileInput" type="file" accept=".glb,.gltf,.stl,.step,.stp" hidden />
   <input id="batchFileInput" type="file" accept=".stl,.step,.stp" multiple hidden />
   <script type="module" src="./main.js"></script>
   <script type="module" src="./batch.js"></script>
