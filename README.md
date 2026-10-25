@@ -1,5 +1,8 @@
 # RoboMaster 3D 作品展示 · SolidWorks → 浏览器
 
+> ⚠️ **本仓库已迁移并弃用**：项目已合并为「大一统模拟器」monorepo，请转到
+> **<https://github.com/hpsks416/robomaster-unified-simulator>**（`frontend/` = 本仓库内容，另含 `simulator/` daedalus 仿真核心与 `docs/` 规划）。本仓库停止维护，仅留作历史参考。
+
 把 SolidWorks 工程导出后在浏览器里做 **PBR 实时展示**，效果优于追光几何的线框/单色渲染，并尽量还原原工程的材质颜色。面向 RoboMaster 竞赛作品展示，可直接作为开源作品集 / 简历项目。
 
 一句话流程：
