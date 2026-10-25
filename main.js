@@ -805,11 +805,57 @@ function renderModelList(models) {
 }
 
 let activeBtn = null;
+
+// LOD：模型导出后若存在 <slug>.lod.json（tools/lod.mjs 产出），提供细节级别切换。
+let lodModel = null; // { base, joints, parts, meta, id, levels }
+
+function lodManifestUrl(glbUrl) {
+  return glbUrl.replace(/\.glb$/i, '') + '.lod.json';
+}
+
+async function checkLod(m) {
+  const sel = document.getElementById('lodSelect');
+  const row = document.getElementById('lodRow');
+  if (!sel || !row) return;
+  lodModel = null;
+  row.style.display = 'none';
+  sel.innerHTML = '';
+  try {
+    const r = await fetch(lodManifestUrl(m.glb), { cache: 'no-store' });
+    if (!r.ok) return;
+    const manifest = await r.json();
+    const levels = (manifest && manifest.levels) || [];
+    if (!levels.length) return;
+    lodModel = { base: m.glb, joints: m.joints, parts: m.parts, meta: m.meta, id: m.id, levels };
+    const opt0 = document.createElement('option');
+    opt0.value = 'base';
+    opt0.textContent = 'LOD0（原始）';
+    sel.appendChild(opt0);
+    levels.forEach(lv => {
+      const o = document.createElement('option');
+      o.value = lv.name;
+      o.textContent = lv.name.toUpperCase() + '（' + Math.round(lv.ratio * 100) + '% 面数）';
+      sel.appendChild(o);
+    });
+    row.style.display = 'block';
+  } catch (e) { /* 无 LOD manifest，静默 */ }
+}
+
+function onLodChange() {
+  if (!lodModel) return;
+  const v = document.getElementById('lodSelect').value;
+  const target = v === 'base'
+    ? lodModel.base
+    : lodModel.base.replace(/\.glb$/i, '') + '.' + v + '.glb';
+  loadGltf(target, lodModel.joints, lodModel.parts, lodModel.meta, lodModel.id);
+}
+
 function selectModel(m) {
   if (activeBtn) activeBtn.classList.remove('active');
   const btn = modelList.querySelector('button[data-id="' + m.id + '"]');
   if (btn) { btn.classList.add('active'); activeBtn = btn; }
   loadGltf(m.glb, m.joints, m.parts, m.meta, m.id);
+  checkLod(m);
 }
 
 document.getElementById('openFile').addEventListener('click', () => fileInput.click());
@@ -973,6 +1019,8 @@ initExplode('explodePanel');
 initFpv('fpvPanel', scene);
 initMaterials('materialPanel');
 initMeasure(scene, 'measurePanel', () => syncModeButtons());
+const lodSel = document.getElementById('lodSelect');
+if (lodSel) lodSel.addEventListener('change', onLodChange);
 
 // Arena occlusion fade: when the camera dips below the model's floor level,
 // fade the arena so the model stays visible (common 3D viewer behavior).

@@ -9,6 +9,9 @@ venv/
 # ---- Rust ----
 rust-server/target/
 
+# ---- Node（LOD 工具链）----
+node_modules/
+
 # ---- 本地翻译模型（首次运行自动下载，~74MB）----
 tools/translate_models/
 

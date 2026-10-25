@@ -1,0 +1,11 @@
+{
+  "name": "cad-viewer-lod",
+  "private": true,
+  "type": "module",
+  "description": "Generate multi-level LOD for exported GLB (gltf-transform + meshoptimizer). Run: npm install && node lod.mjs ../models/<slug>.glb",
+  "dependencies": {
+    "@gltf-transform/core": "^4.0.0",
+    "@gltf-transform/functions": "^4.0.0",
+    "meshoptimizer": "^0.22.0"
+  }
+}

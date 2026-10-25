@@ -168,7 +168,7 @@ RoboMaster 典型关节：云台 yaw/pitch、轮子连续转、舱盖/弹舱铰�
 ## 10. 风险与边界
 
 - **STEP 颜色丢失**：AP214 之外的部分格式可能不带面颜色，此时 fallback 到 presets.json 默认色。
-- **大装配体性能**：Draco/meshopt 网格压缩已实现（转换预设 + 前端 loader）；LOD、three-mesh-bvh 拾取加速、实例化后续；纹理 KTX2/basisu 对纯 STEP 面颜色场景不适用（无纹理可压）。
+- **大装配体性能**：Draco/meshopt 网格压缩已实现（转换预设 + 前端 loader）；LOD（gltf-transform 多级细节，tools/lod.mjs）已实现；three-mesh-bvh 拾取加速、实例化后续；纹理 KTX2/basisu 对纯 STEP 面颜色场景不适用（无纹理可压）。
 - **关节轴朝向**：axis 是节点局部系，真实关节要按子装配体朝向微调。
 - **SolidWorks 版本差异**：导出选项叫法不同，以「能导出 STEP AP214 或 STL」为准。
 

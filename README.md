@@ -145,6 +145,18 @@ python tools/build.py --files '["test_assembly.step"]' --mode '{"compression":"d
 
 `--mode` 也接受预设 id（如 `--mode draco`）。
 
+## 多级 LOD（大装配体）
+
+导出 GLB 后，可用 gltf-transform 生成多级细节（基于 meshoptimizer 简化，需 Node 工具链）：
+
+```bash
+cd tools
+npm install            # 首次
+node lod.mjs ../models/<slug>.glb
+```
+
+产出 `models/<slug>.lod1.glb`（约 50% 面数）、`<slug>.lod2.glb`（约 20%）与 `<slug>.lod.json` 清单；查看器检测到清单后，侧栏会出现「细节级别（LOD）」下拉，按需切换。切换走完整加载管线，场景树 / 材质 / 剖切 / 爆炸 / 关节 / FPV 对每级一致生效。
+
 ## 可动关节（仅 STEP 装配体）
 
 STEP 装配体的每个子装配体/零件在 glTF 里都是可变换节点，可直接当关节驱动。
