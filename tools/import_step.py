@@ -9,6 +9,7 @@
 用法：
   python tools/import_step.py --input assets/export/装配体.step --output work/step/robo
 """
+import hashlib
 import json
 import math
 import os
@@ -123,11 +124,14 @@ def _detect_up(path):
 
 
 def _ensure_utf8_step(path):
-    """SolidWorks 中文版常把 STEP 写成 GBK；转成 UTF-8 供 OCP 正确读取中文名。"""
+    """SolidWorks 中文版常把 STEP 写成 GBK；转成 UTF-8 供 OCP 正确读取中文名。
+
+    返回 (可用路径, 临时文件路径)。若无需转码，临时文件路径为 None。
+    """
     raw = open(path, "rb").read()
     try:
         raw.decode("utf-8")
-        return path
+        return path, None
     except UnicodeDecodeError:
         pass
     text = None
@@ -142,28 +146,43 @@ def _ensure_utf8_step(path):
     fd, tmp = tempfile.mkstemp(suffix=".step", prefix="cadview_utf8_")
     with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
         f.write(text)
-    return tmp
+    return tmp, tmp
 
 
 class _StepDoc:
     def __init__(self, path):
-        path = _ensure_utf8_step(path)
-        self.app = XCAFApp_Application.GetApplication_s()
-        self.doc = TDocStd_Document(TCollection_ExtendedString("step"))
-        self.app.InitDocument(self.doc)
-        r = STEPCAFControl_Reader()
-        r.SetColorMode(True)
-        r.SetNameMode(True)
-        print("[import_step] 正在读取 STEP 文件 ...", flush=True)
-        st = r.ReadFile(os.path.abspath(path))
-        if st != 1:  # IFSelect_RetDone
-            raise SystemExit(f"读取 STEP 失败：{path} (status={st})")
-        print("[import_step] ReadFile 完成，正在 Transfer 到 XCAF ...", flush=True)
-        if not r.Transfer(self.doc):
-            raise SystemExit("STEP 转 XCAF 失败")
-        print("[import_step] Transfer 完成", flush=True)
+        path, self._tmp = _ensure_utf8_step(path)
+        try:
+            self.app = XCAFApp_Application.GetApplication_s()
+            self.doc = TDocStd_Document(TCollection_ExtendedString("step"))
+            self.app.InitDocument(self.doc)
+            r = STEPCAFControl_Reader()
+            r.SetColorMode(True)
+            r.SetNameMode(True)
+            print("[import_step] 正在读取 STEP 文件 ...", flush=True)
+            st = r.ReadFile(os.path.abspath(path))
+            if st != 1:  # IFSelect_RetDone
+                raise SystemExit(f"读取 STEP 失败：{path} (status={st})")
+            print("[import_step] ReadFile 完成，正在 Transfer 到 XCAF ...", flush=True)
+            if not r.Transfer(self.doc):
+                raise SystemExit("STEP 转 XCAF 失败")
+            print("[import_step] Transfer 完成", flush=True)
+        except BaseException:
+            self._cleanup_tmp()
+            raise
+        self._cleanup_tmp()
         self.st = XCAFDoc_DocumentTool.ShapeTool_s(self.doc.Main())
         self.ct = XCAFDoc_DocumentTool.ColorTool_s(self.doc.Main())
+
+    def _cleanup_tmp(self):
+        """删除 GBK->UTF-8 转码产生的临时 STEP 文件（约等于源文件大小）。"""
+        tmp = getattr(self, "_tmp", None)
+        if tmp:
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            self._tmp = None
 
     def get_color(self, lab):
         c = Quantity_Color()
@@ -214,7 +233,22 @@ def _iter_leaves(doc, lab):
         yield lab
 
 
-def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0.3):
+def _angular_for_extent(d, base_ang):
+    """按零件包围盒尺寸分档角度偏差（尺寸自适应精修）。
+
+    中件(25~60mm，典型齿轮/轴承座/支架等曲面件)给最细角度；
+    小件(<25mm，螺钉/小圆角)给中细，避免小特征过度细分；
+    大件(>=60mm，机架/底盘)用 base 角度作为粗帽，由线性偏差保证大曲面圆度。
+    """
+    if d < 25.0:
+        return min(base_ang, 0.30)
+    if d < 60.0:
+        return min(base_ang, 0.15)
+    return base_ang
+
+
+def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0.5,
+                linear_factor=0.0004, size_adaptive=False, dedup=True):
     step_path = os.path.abspath(step_path)
     out_dir = os.path.abspath(out_dir)
     parts_dir = os.path.join(out_dir, "parts")
@@ -253,14 +287,18 @@ def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0
         k = min(len(extents) - 1, int(len(extents) * 0.95))
         max_dim = extents[k] or 100.0
     if linear_deflection is None:
-        linear_deflection = max_dim * 0.002
+        linear_deflection = max_dim * linear_factor
     lin = float(linear_deflection)
     ang = float(angular_deflection)
+    print(f"[import_step] 网格精度: 95%分位尺寸={max_dim:.1f}mm, 线性偏差={lin:.3f}mm, 角度偏差={ang:.2f}rad", flush=True)
+    print(f"[import_step] 选项: 线性系数={linear_factor} 尺寸自适应={size_adaptive} 几何去重={dedup}", flush=True)
 
     # 预写所有叶子 STL（保证建树时 id 可用），顺序与遍历一致。
     leaf_meta = []  # {"id","name","source_name","color","part"}
     used = set()
+    hash_to_stl = {}   # 网格内容哈希 -> 已写入 stl 相对路径（相同几何共享一份 STL）
     idx = 0
+    dup_instances = 0
     for root in free:
         for leaf in _iter_leaves(doc, root):
             idx += 1
@@ -276,16 +314,37 @@ def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0
             used.add(base)
             stl_rel = f"parts/{base}.stl"
             stl_abs = os.path.join(parts_dir, f"{base}.stl")
-            BRepMesh_IncrementalMesh(shape, lin, False, ang, True).Perform()
+            # 半径自适应细分：小线性偏差(lin)负责大半径曲面(轮子)的圆度，
+            # 大角度偏差(ang)作为粗帽，避免小半径圆角被过度细分。
+            part_ang = ang
+            if size_adaptive:
+                b = _bounds(shape)
+                if b:
+                    mn, mx = b
+                    d = max(mx[i] - mn[i] for i in range(3))
+                    part_ang = _angular_for_extent(d, ang)
+            BRepMesh_IncrementalMesh(shape, lin, False, part_ang, True).Perform()
             w = StlAPI_Writer()
             w.ASCIIMode = False
             w.Write(shape, stl_abs)
+            # 相同几何共享一份 STL，避免重复网格撑大 GLB
+            if dedup:
+                with open(stl_abs, "rb") as f:
+                    h = hashlib.md5(f.read()).hexdigest()
+                if h in hash_to_stl:
+                    os.remove(stl_abs)
+                    stl_rel = hash_to_stl[h]
+                    dup_instances += 1
+                else:
+                    hash_to_stl[h] = stl_rel
             leaf_meta.append({
                 "id": base, "name": name, "source_name": raw,
                 "color": doc.get_color(leaf), "part": stl_rel,
             })
             if idx % 25 == 0:
                 print(f"[import_step] 网格化 {idx}/{n_leaves} ...", flush=True)
+    if dup_instances:
+        print(f"[import_step] 相同几何去重：{dup_instances} 个实例共享已有 STL", flush=True)
 
     meta_iter = iter(leaf_meta)
     parts_map = {}
@@ -327,6 +386,9 @@ def import_step(step_path, out_dir, linear_deflection=None, angular_deflection=0
         "units": "mm",
         "linear_deflection": lin,
         "angular_deflection": ang,
+        "linear_factor": linear_factor,
+        "size_adaptive": size_adaptive,
+        "dedup": dedup,
         "roots": roots,
         "parts": parts_map,
     }
@@ -351,9 +413,13 @@ def main():
     ap.add_argument("--input", required=True)
     ap.add_argument("--output", required=True)
     ap.add_argument("--linear-deflection", type=float, default=None)
-    ap.add_argument("--angular-deflection", type=float, default=0.3)
+    ap.add_argument("--angular-deflection", type=float, default=0.5)
+    ap.add_argument("--linear-factor", type=float, default=0.0004)
+    ap.add_argument("--size-adaptive", action="store_true")
+    ap.add_argument("--no-dedup", action="store_true")
     a = ap.parse_args()
-    h = import_step(a.input, a.output, a.linear_deflection, a.angular_deflection)
+    h = import_step(a.input, a.output, a.linear_deflection, a.angular_deflection,
+                    a.linear_factor, a.size_adaptive, not a.no_dedup)
     n = sum(len(flatten_parts(r)) for r in h["roots"])
     print(f"STEP -> {n} 个零件, 输出 {a.output}")
 

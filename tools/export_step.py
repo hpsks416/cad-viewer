@@ -180,6 +180,7 @@ def main():
     name = args.get("name") or "model"
     preview = args.get("preview")
     preset_path = args.get("presets")
+    compression = (args.get("compression") or "meshopt").lower()
     if not hierarchy_path or not outp:
         raise SystemExit("MISSING --hierarchy/--output")
     hierarchy_path = os.path.abspath(hierarchy_path)
@@ -207,24 +208,34 @@ def main():
     top.empty_display_type = "PLAIN_AXES"
     scene.collection.objects.link(top)
 
+    # STL 网格去重缓存：(stl 绝对路径, 颜色 key) -> mesh data。
+    # 相同 STL + 相同颜色共享一份 mesh data，glTF 导出时写一次网格 + 多个实例。
+    stl_cache = {}
+
     def create_node(node, parent):
         if node.get("kind") == "part":
-            stl_path = os.path.join(base_dir, node["part"])
-            before = set(scene.objects)
-            bpy.ops.import_mesh.stl(filepath=stl_path)
-            imported = [o for o in scene.objects if o not in before and o.type == "MESH"]
-            obj = imported[0] if imported else None
-            if obj is None:
-                return None
-            obj.name = node.get("id") or "part"
-            obj.data.name = obj.name
-            # 赋材质
-            key = tuple(round(x, 4) for x in node["color"]) if node.get("color") else None
-            mat_name = mat_map.get(key)
-            if mat_name:
-                mat = bpy.data.materials.get(mat_name)
-                obj.data.materials.clear()
-                obj.data.materials.append(mat)
+            stl_path = os.path.normcase(os.path.abspath(os.path.join(base_dir, node["part"])))
+            color_key = tuple(round(x, 4) for x in node["color"]) if node.get("color") else None
+            cache_key = (stl_path, color_key)
+            if cache_key in stl_cache:
+                obj = bpy.data.objects.new(node.get("id") or "part", stl_cache[cache_key])
+                scene.collection.objects.link(obj)
+            else:
+                before = set(scene.objects)
+                bpy.ops.import_mesh.stl(filepath=stl_path)
+                imported = [o for o in scene.objects if o not in before and o.type == "MESH"]
+                obj = imported[0] if imported else None
+                if obj is None:
+                    return None
+                obj.name = node.get("id") or "part"
+                obj.data.name = obj.name
+                stl_cache[cache_key] = obj.data
+                # 赋材质（相同 STL+颜色共享 mesh data，材质只在首次导入时设置）
+                mat_name = mat_map.get(color_key)
+                if mat_name:
+                    mat = bpy.data.materials.get(mat_name)
+                    obj.data.materials.clear()
+                    obj.data.materials.append(mat)
         else:
             obj = bpy.data.objects.new(node.get("id") or "assembly", None)
             obj.empty_display_type = "PLAIN_AXES"
@@ -277,7 +288,22 @@ def main():
     print(f"NORMALIZED max_dim={round(max_dim,3)} scale={round(scale,4)}")
 
     os.makedirs(os.path.dirname(os.path.abspath(outp)), exist_ok=True)
-    bpy.ops.export_scene.gltf(filepath=outp, export_format="GLB")
+    if compression == "draco":
+        # Draco 有损压缩（量化），体积更小但位置精度约 0.3mm 级。
+        bpy.ops.export_scene.gltf(
+            filepath=outp, export_format="GLB",
+            export_draco_mesh_compression_enable=True,
+            export_draco_mesh_compression_level=7,
+        )
+        print("COMPRESSION=draco")
+    elif compression == "none":
+        # 不压缩：体积最大，但兼容性最好，便于外部工具直接读取。
+        bpy.ops.export_scene.gltf(filepath=outp, export_format="GLB")
+        print("COMPRESSION=none")
+    else:
+        # Meshopt 无损压缩（float32 顶点经指数滤波 + 熵编码）。
+        bpy.ops.export_scene.gltf(filepath=outp, export_format="GLB", export_meshopt_compression_enable=True)
+        print("COMPRESSION=meshopt")
     print("EXPORTED_GLB", outp)
 
     # 写元信息（归一化比例等），供查看器换算真实尺寸 / 关节平移单位

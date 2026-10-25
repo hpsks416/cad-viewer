@@ -3,9 +3,13 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { initJoints, updateJoints, clearJoints, getJointDragHandles, findJointByHandle, getJointWorld, applyJointValue, setJointHandleHover } from './viewer/joints.js';
 import { initSceneTree, renderSceneTree, clearSceneTree, selectByObject } from './viewer/scene-tree.js';
 import { initSection, setModelSection, clearSection } from './viewer/section.js';
+import { initExplode, setModelExplode, clearExplode } from './viewer/explode.js';
+import { initFpv, setModelFpv, clearFpv, getEyeWorld, getDirection, getYawPitch, setYawPitch, updateGizmo } from './viewer/fpv.js';
 import { initMaterials, setCurrentModelId, selectModelPart, selectPart, applyOverrides } from './viewer/materials.js';
 import { loadState, getInitialPlacement, setInitialPlacement, clearInitialPlacement } from './viewer/state.js';
 
@@ -19,6 +23,21 @@ const BACKGROUND = {
 
 // 默认落点（世界坐标，米；Y 自动贴合该处场地表面），仅在没有“已保存位置”时使用。
 const DEFAULT_PLACEMENT = { x: -12.5, z: 6.0 };
+
+// WASD 驾驶参数（世界单位 = 米）。
+const WALK_SPEED = 2.5;
+const JUMP_SPEED = 4.0;
+const GRAVITY = 9.8;
+
+// 驾驶手感 / 第三人称跟随相机参数
+const DRIVE_ACCEL = 8.0;
+const DRIVE_DECEL = 6.0;
+const CAM_FOLLOW_SPEED = 8.0;
+const ORBIT_SENS = 0.004;
+const FOLLOW_PITCH_MIN = 0.06;
+const FOLLOW_PITCH_MAX = 1.45;
+const FOLLOW_DIST_MIN = 0.8;
+const FOLLOW_DIST_MAX = 40.0;
 
 function loadSavedPlacement() {
   const v = getInitialPlacement();
@@ -99,6 +118,10 @@ scene.add(grid);
 scene.add(new THREE.AxesHelper(0.35));
 
 const gltfLoader = new GLTFLoader();
+gltfLoader.setMeshoptDecoder(MeshoptDecoder); // 支持 EXT_meshopt_compression 压缩的 GLB
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('lib/libs/draco/');
+gltfLoader.setDRACOLoader(dracoLoader); // 支持 KHR_draco_mesh_compression 压缩的 GLB
 const stlLoader = new STLLoader();
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -106,6 +129,21 @@ const pointer = new THREE.Vector2();
 // 关节拖动状态：在转轴处按住高亮环即可绕轴旋转。
 let dragJoint = null;    // { joint, pivot, axis, u, v, startAngle, startValue }
 let hoveredHandle = null;
+
+// WASD 驾驶模式（可选操作模式）：碰撞体积 + 场地空气墙 + 键盘位移。
+let driveMode = false;
+let driveKeys = Object.create(null);
+let driveVy = 0;              // 垂直速度（跳跃 / 重力）
+let driveGrounded = true;
+let modelLocalBottom = 0;     // 模型原点到底面的世界高度偏移
+let modelHalfExtents = null;  // 缓存的模型 AABB 半尺寸（米）
+let lastDriveSave = 0;
+let driveVel = new THREE.Vector3();   // 平滑后的水平速度
+let driveOrbiting = false;            // 驾驶模式下鼠标环绕中
+let followYaw = 0, followPitch = 0.6, followDist = 6;
+const followCamPos = new THREE.Vector3();
+let fpvMode = false;
+let fpvLooking = false;
 
 function setPointerFromEvent(e) {
   pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -173,7 +211,7 @@ function endJointDrag() {
 }
 
 function updateJointHover(e) {
-  if (dragJoint || placeMode || bgMatMode) return;
+  if (dragJoint || placeMode || bgMatMode || driveMode) return;
   const handle = raycastJointHandle(e);
   if (handle !== hoveredHandle) {
     if (hoveredHandle) setJointHandleHover(hoveredHandle, false);
@@ -220,6 +258,11 @@ function replaceLoaded(root) {
   if (prev) scene.remove(prev);
   root.name = '__loaded__';
   scene.add(root);
+  modelHalfExtents = null;
+  modelLocalBottom = 0;
+  modelBottomY = null;
+  driveVy = 0;
+  driveGrounded = true;
 }
 
 // Single-part models (a lone STL/GLB mesh) have no A/P serial nodes; name the mesh P001
@@ -248,6 +291,8 @@ function loadGltf(url, jointsUrl, partsUrl, meta, modelId) {
   clearJoints();
   clearSceneTree();
   clearSection();
+  clearExplode();
+  clearFpv();
   gltfLoader.load(url, (gltf) => {
     const root = gltf.scene;
     if (meta && meta.max_dim) applyMeters(root, meta.max_dim);
@@ -279,6 +324,8 @@ function loadStl(url, modelId) {
   clearJoints();
   clearSceneTree();
   clearSection();
+  clearExplode();
+  clearFpv();
   stlLoader.load(url, (geometry) => {
     geometry.computeVertexNormals();
     const mat = new THREE.MeshStandardMaterial({ color: 0x9aa0a6, metalness: 0.7, roughness: 0.4 });
@@ -290,6 +337,8 @@ function loadStl(url, modelId) {
     currentMeta = null;
     frameObject(group);
     setModelSection(group);
+    setModelExplode(group);
+    setModelFpv(group);
     const parts = { P001: { name_en: modelId, name_zh: modelId, kind: 'part' } };
     renderSceneTree(group, parts);
     setCurrentModelId(modelId);
@@ -318,13 +367,41 @@ let bgMatMode = false;
 let arenaParts = {};
 const placeBtn = document.getElementById('placeBtn');
 const bgMatBtn = document.getElementById('bgMatBtn');
-if (placeBtn) placeBtn.addEventListener('click', () => { placeMode = !placeMode; if (placeMode) bgMatMode = false; syncModeButtons(); });
-if (bgMatBtn) bgMatBtn.addEventListener('click', () => { bgMatMode = !bgMatMode; if (bgMatMode) placeMode = false; syncModeButtons(); });
+const driveBtn = document.getElementById('driveBtn');
+const fpvBtn = document.getElementById('fpvBtn');
+if (placeBtn) placeBtn.addEventListener('click', () => { placeMode = !placeMode; if (placeMode) { bgMatMode = false; if (driveMode) { driveMode = false; exitDrive(); } if (fpvMode) { fpvMode = false; exitFpv(); } } syncModeButtons(); });
+if (bgMatBtn) bgMatBtn.addEventListener('click', () => { bgMatMode = !bgMatMode; if (bgMatMode) { placeMode = false; if (driveMode) { driveMode = false; exitDrive(); } if (fpvMode) { fpvMode = false; exitFpv(); } } syncModeButtons(); });
+if (driveBtn) driveBtn.addEventListener('click', () => {
+  driveMode = !driveMode;
+  driveKeys = Object.create(null);
+  driveVy = 0; driveGrounded = true;
+  if (driveMode) { placeMode = false; bgMatMode = false; if (fpvMode) { fpvMode = false; exitFpv(); } enterDrive(); }
+  else { exitDrive(); }
+  const m = scene.getObjectByName('__loaded__');
+  if (m) savePlacement(m.position.x, m.position.z);
+  syncModeButtons();
+});
+if (fpvBtn) fpvBtn.addEventListener('click', () => {
+  fpvMode = !fpvMode;
+  driveKeys = Object.create(null);
+  driveVy = 0; driveGrounded = true;
+  if (fpvMode) { placeMode = false; bgMatMode = false; if (driveMode) { driveMode = false; exitDrive(); } enterFpv(); }
+  else { exitFpv(); }
+  const m = scene.getObjectByName('__loaded__');
+  if (m) savePlacement(m.position.x, m.position.z);
+  syncModeButtons();
+});
 function syncModeButtons() {
   if (placeBtn) { placeBtn.classList.toggle('active', placeMode); placeBtn.textContent = placeMode ? '点击场地放置机器人（激活）' : '点击场地放置机器人'; }
   if (bgMatBtn) { bgMatBtn.classList.toggle('active', bgMatMode); bgMatBtn.textContent = bgMatMode ? '编辑场地材质（激活）' : '编辑场地材质'; }
+  if (driveBtn) { driveBtn.classList.toggle('active', driveMode); driveBtn.textContent = driveMode ? '驾驶模式（激活）' : '驾驶模式（WASD）'; }
+  if (fpvBtn) { fpvBtn.classList.toggle('active', fpvMode); fpvBtn.textContent = fpvMode ? '第一人称（激活）' : '第一人称（FPV）'; }
+  const driveHint = document.getElementById('driveHint');
+  if (driveHint) driveHint.style.display = driveMode ? 'block' : 'none';
+  const fpvHint = document.getElementById('fpvHint');
+  if (fpvHint) fpvHint.style.display = fpvMode ? 'block' : 'none';
   if (!bgMatMode) clearBgSelection();
-  renderer.domElement.style.cursor = (placeMode || bgMatMode) ? 'crosshair' : '';
+  renderer.domElement.style.cursor = (placeMode || bgMatMode) ? 'crosshair' : ((driveMode || fpvMode) ? 'move' : '');
 }
 const resetPlaceBtn = document.getElementById('resetPlaceBtn');
 if (resetPlaceBtn) {
@@ -374,10 +451,15 @@ function placeModelAt(x, z) {
       modelBottomY = surfaceY;
       // 局部底面偏移 = 世界包围盒底 - 当前原点位置，避免重复放置时叠加旧位移。
       const localBottom = mbox.min.y - model.position.y;
+      modelLocalBottom = localBottom;
+      const size = mbox.getSize(new THREE.Vector3());
+      modelHalfExtents = { x: size.x / 2, y: size.y / 2, z: size.z / 2 };
       model.position.set(x, surfaceY - localBottom, z);
     }
   }
   setModelSection(model);
+  setModelExplode(model);
+  setModelFpv(model);
 }
 
 // 采样中心及周围若干点，取表面最低者作为“场地地面”默认落点，避开中央高台等凸起结构。
@@ -415,7 +497,208 @@ function placeModelOnFloor() {
   }
   frameObject(model);
   setModelSection(model);
+  setModelExplode(model);
+  setModelFpv(model);
 }
+
+// ---- WASD 驾驶模式：碰撞体积 + 场地空气墙 + 键盘位移 ----
+function getModelRoot() { return scene.getObjectByName('__loaded__'); }
+
+function getModelHalfExtents() {
+  if (!modelHalfExtents) {
+    const model = getModelRoot();
+    if (model) {
+      const box = new THREE.Box3().setFromObject(model);
+      if (!box.isEmpty()) {
+        const s = box.getSize(new THREE.Vector3());
+        modelHalfExtents = { x: s.x / 2, y: s.y / 2, z: s.z / 2 };
+      }
+    }
+  }
+  return modelHalfExtents;
+}
+
+function getArenaBounds() {
+  const box = getBackgroundBox();
+  if (!box) return null;
+  return { minX: box.min.x, maxX: box.max.x, minZ: box.min.z, maxZ: box.max.z };
+}
+
+// 用碰撞体积（AABB 半宽）把机器人中心夹在场地空气墙内。
+function clampToArena(x, z) {
+  const b = getArenaBounds();
+  const half = getModelHalfExtents();
+  if (!b || !half) return { x, z };
+  const loX = b.minX + half.x, hiX = b.maxX - half.x;
+  const loZ = b.minZ + half.z, hiZ = b.maxZ - half.z;
+  return {
+    x: (hiX >= loX) ? Math.min(hiX, Math.max(loX, x)) : b.minX,
+    z: (hiZ >= loZ) ? Math.min(hiZ, Math.max(loZ, z)) : b.minZ,
+  };
+}
+
+// 驱动时的地面采样：节流到约 30Hz，避免对超大场地逐帧多次射线。
+let groundCache = { x: null, z: null, y: null, t: 0 };
+function driveGroundY(x, z) {
+  const now = performance.now();
+  const moved = groundCache.y === null || Math.hypot(x - groundCache.x, z - groundCache.z) > 0.15;
+  if (!moved && now - groundCache.t < 33) return groundCache.y;
+  const y = surfaceYAt(x, z);
+  groundCache.x = x; groundCache.z = z; groundCache.t = now;
+  if (y !== null) groundCache.y = y;
+  return groundCache.y;
+}
+
+function enterDrive() {
+  controls.enabled = false;
+  driveOrbiting = false;
+  driveVel.set(0, 0, 0);
+  const model = getModelRoot();
+  const target = model ? model.position : new THREE.Vector3();
+  const off = camera.position.clone().sub(target);
+  const d = Math.max(off.length(), FOLLOW_DIST_MIN);
+  followDist = Math.min(d, FOLLOW_DIST_MAX);
+  followYaw = Math.atan2(off.x, off.z);
+  followPitch = Math.asin(THREE.MathUtils.clamp(off.y / followDist, -1, 1));
+  followPitch = Math.min(FOLLOW_PITCH_MAX, Math.max(FOLLOW_PITCH_MIN, followPitch));
+  followCamPos.copy(camera.position);
+}
+
+function exitDrive() {
+  driveOrbiting = false;
+  controls.enabled = true;
+  const model = getModelRoot();
+  if (model) controls.target.copy(model.position);
+  controls.update();
+}
+
+function updateFollowCamera(dt) {
+  const model = getModelRoot();
+  if (!model) return;
+  const target = model.position;
+  const half = getModelHalfExtents();
+  const lookY = target.y + modelLocalBottom + (half ? half.y : 0.25);
+  const desired = new THREE.Vector3(
+    target.x + followDist * Math.cos(followPitch) * Math.sin(followYaw),
+    target.y + followDist * Math.sin(followPitch),
+    target.z + followDist * Math.cos(followPitch) * Math.cos(followYaw),
+  );
+  if (desired.y < target.y + 0.12) desired.y = target.y + 0.12;
+  followCamPos.lerp(desired, 1 - Math.exp(-CAM_FOLLOW_SPEED * dt));
+  camera.position.copy(followCamPos);
+  camera.lookAt(target.x, lookY, target.z);
+}
+
+function updateMovement(dt) {
+  const model = getModelRoot();
+  if (!model || !backgroundGroup) return false;
+
+  // 相机朝向投影到 XZ 平面，W/S 前进后退，A/D 左右平移。
+  const fwd = new THREE.Vector3();
+  camera.getWorldDirection(fwd);
+  fwd.y = 0;
+  if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1);
+  fwd.normalize();
+  const right = new THREE.Vector3(-fwd.z, 0, fwd.x);
+
+  const ix = (driveKeys['KeyD'] || driveKeys['ArrowRight'] ? 1 : 0) - (driveKeys['KeyA'] || driveKeys['ArrowLeft'] ? 1 : 0);
+  const iz = (driveKeys['KeyW'] || driveKeys['ArrowUp'] ? 1 : 0) - (driveKeys['KeyS'] || driveKeys['ArrowDown'] ? 1 : 0);
+  const move = new THREE.Vector3().addScaledVector(fwd, iz).addScaledVector(right, ix);
+  if (move.lengthSq() > 1e-6) move.normalize();
+
+  // 平滑加减速，避免瞬间全速 / 急停。
+  const targetVel = move.clone().multiplyScalar(WALK_SPEED);
+  const accel = (move.lengthSq() > 1e-6) ? DRIVE_ACCEL : DRIVE_DECEL;
+  driveVel.lerp(targetVel, 1 - Math.exp(-accel * dt));
+
+  const clamp = clampToArena(model.position.x + driveVel.x * dt, model.position.z + driveVel.z * dt);
+  const groundY = driveGroundY(clamp.x, clamp.z);
+  if (groundY === null) return false;
+  const bottomTarget = groundY - modelLocalBottom;
+
+  let ny = model.position.y;
+  if (driveKeys['Space'] && driveGrounded) { driveVy = JUMP_SPEED; driveGrounded = false; }
+  if (!driveGrounded) {
+    driveVy -= GRAVITY * dt;
+    ny += driveVy * dt;
+    if (ny <= bottomTarget) { ny = bottomTarget; driveVy = 0; driveGrounded = true; }
+  } else {
+    ny = bottomTarget;
+  }
+
+  model.position.set(clamp.x, ny, clamp.z);
+  modelBottomY = ny + modelLocalBottom;
+
+  const speedEl = document.getElementById('driveSpeed');
+  if (speedEl) speedEl.textContent = driveVel.length().toFixed(1);
+  const fpvSpeedEl = document.getElementById('fpvSpeed');
+  if (fpvSpeedEl) fpvSpeedEl.textContent = driveVel.length().toFixed(1);
+
+  const now = performance.now();
+  if (now - lastDriveSave > 300) {
+    lastDriveSave = now;
+    savePlacement(clamp.x, clamp.z);
+  }
+  return true;
+}
+
+function updateDrive(dt) {
+  if (!driveMode) return;
+  if (!updateMovement(dt)) return;
+  updateFollowCamera(dt);
+}
+
+function enterFpv() {
+  controls.enabled = false;
+  fpvLooking = false;
+  driveVel.set(0, 0, 0);
+  updateFpvCamera();
+}
+
+function exitFpv() {
+  fpvLooking = false;
+  controls.enabled = true;
+  const model = getModelRoot();
+  if (model) controls.target.copy(model.position);
+  controls.update();
+}
+
+function updateFpvCamera() {
+  if (!getModelRoot()) return;
+  const eye = getEyeWorld(new THREE.Vector3());
+  const fwd = getDirection(new THREE.Vector3());
+  camera.position.copy(eye);
+  camera.lookAt(eye.x + fwd.x, eye.y + fwd.y, eye.z + fwd.z);
+}
+
+function updateFpv(dt) {
+  if (!fpvMode) return;
+  updateMovement(dt);
+  updateFpvCamera();
+}
+
+function isTyping() {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = (el.tagName || '').toLowerCase();
+  return tag === 'input' || tag === 'textarea' || tag === 'select' || !!el.isContentEditable;
+}
+
+window.addEventListener('keydown', (e) => {
+  if (!driveMode || isTyping()) return;
+  const codes = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+  if (codes.includes(e.code)) {
+    driveKeys[e.code] = true;
+    if (e.code === 'Space') e.preventDefault();
+  }
+});
+window.addEventListener('keyup', (e) => { driveKeys[e.code] = false; });
+window.addEventListener('blur', () => { driveKeys = Object.create(null); });
+renderer.domElement.addEventListener('wheel', (e) => {
+  if (!driveMode) return;
+  e.preventDefault();
+  followDist = Math.min(FOLLOW_DIST_MAX, Math.max(FOLLOW_DIST_MIN, followDist * (1 + e.deltaY * 0.001)));
+}, { passive: false });
 
 async function loadBackground() {
   try {
@@ -442,14 +725,17 @@ async function loadBackground() {
   }
 }
 
-async function loadManifest() {
+async function loadManifest(selectId) {
   try {
     const r = await fetch('models/manifest.json', { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const data = await r.json();
     const models = data.models || [];
     renderModelList(models);
-    if (models.length) selectModel(models[0]);
+    if (models.length) {
+      const target = selectId ? models.find((m) => m.id === selectId) : null;
+      selectModel(target || models[0]);
+    }
   } catch (e) {
     modelList.innerHTML = '<li class="empty">未找到 models/manifest.json<br/>请先运行 python run.py --build</li>';
   }
@@ -537,10 +823,13 @@ function clearBgSelection() {
 
 // 射线拾取：左键点击（非拖拽）选中零件并高亮；背景场景不参与拾取。
 let downX = 0, downY = 0;
+let fpvLastX = 0, fpvLastY = 0;   // FPV 环绕的增量基准，与「点击/拖拽判定」的 downX/downY 分离
 // capture=true：在 OrbitControls 之前先判断是否命中关节拖动环，
 // 命中就临时关闭 OrbitControls，避免它抢占同一段拖拽。
 renderer.domElement.addEventListener('pointerdown', (e) => {
   if (e.button !== 0) return;
+  if (driveMode) { driveOrbiting = true; downX = e.clientX; downY = e.clientY; return; }
+  if (fpvMode) { fpvLooking = true; downX = e.clientX; downY = e.clientY; fpvLastX = e.clientX; fpvLastY = e.clientY; return; }
   // 放置 / 场地材质模式下不抢占关节拖拽。
   if (!placeMode && !bgMatMode) {
     const handle = raycastJointHandle(e);
@@ -553,15 +842,33 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   downY = e.clientY;
 }, true);
 window.addEventListener('pointermove', (e) => {
+  if (driveMode && driveOrbiting) {
+    const dx = e.clientX - downX, dy = e.clientY - downY;
+    followYaw -= dx * ORBIT_SENS;
+    followPitch += dy * ORBIT_SENS;
+    followPitch = Math.min(FOLLOW_PITCH_MAX, Math.max(FOLLOW_PITCH_MIN, followPitch));
+    downX = e.clientX; downY = e.clientY;
+    return;
+  }
+  if (fpvMode && fpvLooking) {
+    const dx = e.clientX - fpvLastX, dy = e.clientY - fpvLastY;
+    const cur = getYawPitch();
+    setYawPitch(cur.yaw - dx * ORBIT_SENS, cur.pitch + dy * ORBIT_SENS);
+    fpvLastX = e.clientX; fpvLastY = e.clientY;
+    return;
+  }
   if (dragJoint) { updateJointDrag(e); }
   else if (e.target === renderer.domElement) { updateJointHover(e); }
 });
 window.addEventListener('pointerup', () => {
+  if (driveOrbiting) driveOrbiting = false;
+  if (fpvLooking) fpvLooking = false;
   endJointDrag();
 });
 renderer.domElement.addEventListener('pointerup', (e) => {
   if (e.button !== 0) return;
   if (dragJoint) { endJointDrag(); return; }
+  if (driveMode) return;
   const dx = e.clientX - downX, dy = e.clientY - downY;
   if (Math.sqrt(dx * dx + dy * dy) > 5) return;
   pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -611,6 +918,8 @@ renderer.domElement.addEventListener('pointerup', (e) => {
 initJoints('jointPanel');
 initSceneTree('sceneTree', (serial) => selectModelPart(serial));
 initSection(renderer, 'sectionPanel');
+initExplode('explodePanel');
+initFpv('fpvPanel', scene);
 initMaterials('materialPanel');
 
 // Arena occlusion fade: when the camera dips below the model's floor level,
@@ -661,7 +970,10 @@ function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.1);
   updateArenaFade(dt);
-  controls.update();
+  if (driveMode) { updateDrive(dt); }
+  else if (fpvMode) { updateFpv(dt); }
+  else { controls.update(); }
+  updateGizmo(!driveMode && !fpvMode);
   renderer.render(scene, camera);
 }
 animate();

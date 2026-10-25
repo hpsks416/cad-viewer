@@ -1,0 +1,29 @@
+{
+  "materials": {
+    "mode": "default"
+  },
+  "joints": {
+    "mode": "default"
+  },
+  "video_transmission": {
+    "mode": "default"
+  },
+  "robot_model": {
+    "mode": "default"
+  },
+  "motion_controller": {
+    "mode": "default"
+  },
+  "power_control": {
+    "mode": "default"
+  },
+  "computer_framework": {
+    "mode": "default"
+  },
+  "navigation": {
+    "mode": "default"
+  },
+  "auto_aim": {
+    "mode": "default"
+  }
+}

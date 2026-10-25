@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -27,6 +28,8 @@ MANIFEST = os.path.join(MODELS, "manifest.json")
 NAMING = os.path.join(ROOT, "assets", "naming-map.json")
 CONFIG = os.path.join(ROOT, "tools", "config.json")
 PRESETS = os.path.join(ROOT, "assets", "materials", "presets.json")
+CONVERT_PRESETS = os.path.join(ROOT, "assets", "convert-presets.json")
+HISTORY = os.path.join(ROOT, "work", "convert-history.json")
 
 STL_EXTS = (".stl",)
 STEP_EXTS = (".step", ".stp")
@@ -71,6 +74,85 @@ def save_naming(naming):
     os.makedirs(os.path.dirname(NAMING), exist_ok=True)
     with open(NAMING, "w", encoding="utf-8") as f:
         json.dump(naming, f, ensure_ascii=False, indent=2)
+
+
+DEFAULT_MODE = {
+    "id": "meshopt",
+    "name": "Meshopt（无损，推荐）",
+    "compression": "meshopt",
+    "angular_deflection": 0.5,
+    "size_adaptive": False,
+    "dedup": True,
+    "radius_adaptive": True,
+}
+
+
+def load_convert_presets():
+    """读取转换预设：{presets: [...], custom: [...]}。"""
+    data = {"presets": [], "custom": []}
+    try:
+        with open(CONVERT_PRESETS, "r", encoding="utf-8") as f:
+            data.update(json.load(f))
+    except Exception:
+        pass
+    return data
+
+
+def save_convert_presets(data):
+    os.makedirs(os.path.dirname(CONVERT_PRESETS), exist_ok=True)
+    tmp = CONVERT_PRESETS + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, CONVERT_PRESETS)
+
+
+def load_history():
+    try:
+        with open(HISTORY, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def save_history(entries):
+    os.makedirs(os.path.dirname(HISTORY), exist_ok=True)
+    with open(HISTORY, "w", encoding="utf-8") as f:
+        json.dump(entries, f, ensure_ascii=False, indent=2)
+
+
+def resolve_mode(mode=None):
+    """把 mode 解析成完整参数字典。
+
+    mode 可为预设 id 字符串、完整 mode 对象，或 None（默认 meshopt 预设）。
+    """
+    data = load_convert_presets()
+    all_modes = data.get("presets", []) + data.get("custom", [])
+    if mode is None:
+        mode = "meshopt"
+    if isinstance(mode, str):
+        for m in all_modes:
+            if m.get("id") == mode:
+                return dict(m)
+        return dict(DEFAULT_MODE)
+    m = dict(DEFAULT_MODE)
+    if isinstance(mode, dict):
+        for k in ("id", "name", "compression", "angular_deflection",
+                  "size_adaptive", "dedup", "radius_adaptive"):
+            if mode.get(k) is not None:
+                m[k] = mode[k]
+    return m
+
+
+def _mode_import_args(mode):
+    """把 mode 参数转成 import_step.py 的命令行参数。"""
+    ang = float(mode.get("angular_deflection", 0.5))
+    linear_factor = 0.0004 if mode.get("radius_adaptive", True) else 0.002
+    out = ["--angular-deflection", str(ang), "--linear-factor", str(linear_factor)]
+    if mode.get("size_adaptive"):
+        out.append("--size-adaptive")
+    if not mode.get("dedup", True):
+        out.append("--no-dedup")
+    return out
 
 
 def _rel(p):
@@ -181,6 +263,49 @@ def _run(cmd):
     return subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
+def _find_ocp_python():
+    """找到能导入 OCP 的 Python，用于 STEP 解析。
+
+    OCP 绑定按 Python 版本编译（当前为 cp312）；服务层可能跑在其它版本（如 3.11）。
+    优先用 config.json 里的 python，其次当前解释器，再自动探测 Codex 运行时里的 Python 3.12。
+    """
+    import glob
+
+    vendor = os.path.join(ROOT, "work", "_vendor")
+    seen = set()
+    candidates = []
+
+    cfg = load_config()
+    if cfg.get("python"):
+        candidates.append(cfg["python"])
+    candidates.append(sys.executable)
+
+    home = os.path.expanduser("~")
+    for pat in (
+        os.path.join(home, ".cache", "codex-runtimes", "*", "dependencies", "python", "python.exe"),
+        os.path.join(home, ".cache", "codex-runtimes", "*", "dependencies", "python", "python"),
+    ):
+        candidates.extend(sorted(glob.glob(pat)))
+
+    def can(py):
+        if not py or not os.path.exists(py):
+            return False
+        code = "import sys; sys.path.insert(0, %r); import OCP" % vendor
+        try:
+            r = subprocess.run([py, "-c", code], capture_output=True, timeout=120)
+            return r.returncode == 0
+        except Exception:
+            return False
+
+    for py in candidates:
+        if not py or py in seen:
+            continue
+        seen.add(py)
+        if can(py):
+            return py
+    return sys.executable
+
+
 def _convert_stl(f, blender, preview, naming):
     slug, name, rec = _slug_for(f, naming)
     src = os.path.join(ASSETS, f)
@@ -203,7 +328,7 @@ def _convert_stl(f, blender, preview, naming):
     }
 
 
-def _convert_step(f, blender, preview, naming):
+def _convert_step(f, blender, preview, naming, mode):
     slug, name, rec = _slug_for(f, naming)
     src = os.path.join(ASSETS, f)
     out_dir = os.path.join(STEP_WORK, slug)
@@ -215,9 +340,9 @@ def _convert_step(f, blender, preview, naming):
 
     # 1) STEP -> 零件网格 + 层级 + 颜色（OCP）
     r1 = _run([
-        sys.executable, os.path.join(ROOT, "tools", "import_step.py"),
+        _find_ocp_python(), os.path.join(ROOT, "tools", "import_step.py"),
         "--input", src, "--output", out_dir,
-    ])
+    ] + _mode_import_args(mode))
     if r1.returncode != 0 or not os.path.exists(hierarchy_path):
         return {
             "filename": f, "type": "step", "slug": slug, "name": name, "ok": False,
@@ -236,6 +361,7 @@ def _convert_step(f, blender, preview, naming):
         blender, "--background", "--python",
         os.path.join(ROOT, "tools", "export_step.py"), "--",
         "--hierarchy", hierarchy_path, "--output", glb, "--name", slug,
+        "--compression", mode.get("compression") or "meshopt",
     ]
     if os.path.exists(PRESETS):
         cmd += ["--presets", PRESETS]
@@ -267,13 +393,14 @@ def _convert_step(f, blender, preview, naming):
     }
 
 
-def build(files=None, preview=None):
+def build(files=None, preview=None, mode=None):
     cfg = load_config()
     blender = cfg["blender"]
     if not blender:
         raise SystemExit("未找到 Blender，请在 tools/config.json 里配置 blender 路径。")
     if preview is None:
         preview = bool(cfg.get("preview", True))
+    mode = resolve_mode(mode)
 
     all_files = scan_sources()
     if files is None:
@@ -288,6 +415,7 @@ def build(files=None, preview=None):
 
     used = {}
     results = []
+    new_history = []
     for f in files:
         # 预先翻译，避免 slug 冲突；冲突时加后缀
         slug, name, rec = _slug_for(f, naming)
@@ -301,18 +429,36 @@ def build(files=None, preview=None):
             rec = naming[f]
         used[slug] = f
 
+        t0 = time.time()
         if _is_step(f):
-            r = _convert_step(f, blender, preview, naming)
+            r = _convert_step(f, blender, preview, naming, mode)
         else:
             r = _convert_stl(f, blender, preview, naming)
+        dt = time.time() - t0
 
         if r["ok"]:
-            print(f"[{f}] -> {r['slug']} 完成")
+            print(f"[{f}] -> {r['slug']} 完成 ({dt:.1f}s)")
         else:
             print(f"[{f}] 转换失败")
+
+        glb_size = None
+        if r["ok"] and r.get("glb"):
+            p = os.path.join(ROOT, r["glb"])
+            if os.path.exists(p):
+                glb_size = os.path.getsize(p)
+        new_history.append({
+            "filename": f, "slug": r.get("slug"), "type": r.get("type"),
+            "preset": mode.get("id"), "preset_name": mode.get("name"),
+            "angular": mode.get("angular_deflection"), "compression": mode.get("compression"),
+            "ok": r["ok"], "seconds": round(dt, 2), "glb_size": glb_size,
+            "error": (r.get("error") or "")[-200:] if not r["ok"] else None,
+            "timestamp": time.time(),
+        })
         results.append(r)
 
     save_naming(naming)
+    hist = (new_history + load_history())[:200]
+    save_history(hist)
 
     models = []
     for f in all_files:
@@ -351,7 +497,7 @@ def build(files=None, preview=None):
     with open(MANIFEST, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
 
-    return {"models": models, "results": results}
+    return {"models": models, "results": results, "history": hist}
 
 
 if __name__ == "__main__":
@@ -360,6 +506,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--no-preview", action="store_true")
     ap.add_argument("--files", default=None, help="JSON array of filenames to convert, e.g. '[\"a.step\"]'")
+    ap.add_argument("--mode", default=None, help="转换模式：预设 id 或 JSON 对象")
     a = ap.parse_args()
 
     files = None
@@ -371,5 +518,12 @@ if __name__ == "__main__":
         except Exception:
             files = None
 
-    res = build(files=files, preview=not a.no_preview)
+    mode = None
+    if a.mode:
+        try:
+            mode = _json.loads(a.mode)
+        except Exception:
+            mode = a.mode
+
+    res = build(files=files, preview=not a.no_preview, mode=mode)
     print(f"manifest -> {os.path.relpath(MANIFEST, ROOT)}  ({len(res['models'])} 个模型)")

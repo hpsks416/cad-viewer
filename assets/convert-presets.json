@@ -1,0 +1,42 @@
+{
+  "presets": [
+    {
+      "id": "meshopt",
+      "name": "Meshopt（无损，推荐）",
+      "compression": "meshopt",
+      "angular_deflection": 0.5,
+      "size_adaptive": false,
+      "dedup": true,
+      "radius_adaptive": true
+    },
+    {
+      "id": "draco",
+      "name": "Draco（高压缩，体积最小）",
+      "compression": "draco",
+      "angular_deflection": 0.5,
+      "size_adaptive": false,
+      "dedup": true,
+      "radius_adaptive": true
+    },
+    {
+      "id": "quick",
+      "name": "快速预览（粗网格，快）",
+      "compression": "meshopt",
+      "angular_deflection": 1.0,
+      "size_adaptive": false,
+      "dedup": true,
+      "radius_adaptive": false
+    }
+  ],
+  "custom": [
+    {
+      "id": "custom-1",
+      "name": "自定义 1",
+      "angular_deflection": 0.5,
+      "radius_adaptive": true,
+      "size_adaptive": true,
+      "dedup": true,
+      "compression": "meshopt"
+    }
+  ]
+}

@@ -42,6 +42,9 @@
       background: rgba(10,10,14,0.55); color: #e8e8ec; font-size: 14px; }
     .hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); color: #8a8a94;
       font-size: 12px; z-index: 10; pointer-events: none; white-space: nowrap; }
+    .drive-hint { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
+      background: rgba(22,22,28,0.92); border: 1px solid #2c2c34; color: #e8e8ec; font-size: 12px;
+      padding: 8px 14px; border-radius: 8px; pointer-events: none; white-space: nowrap; }
 
     /* 批量导出面板 */
     .batch-overlay { position: fixed; inset: 0; z-index: 40; display: none;
@@ -59,6 +62,8 @@
     .batch-toolbar button { cursor: pointer; border: 1px solid #2c2c34; background: #22222a;
       color: #d6d6dc; padding: 6px 12px; border-radius: 8px; font-size: 12px; }
     .batch-toolbar button:hover { background: #2c2c34; }
+    .batch-toolbar button.pick-btn { background: #2a4bd7; border-color: #2a4bd7; color: #fff; }
+    .batch-toolbar button.pick-btn:hover { background: #3458e6; }
     .batch-status { font-size: 12px; color: #8a8a94; margin-left: auto; }
     .batch-list { list-style: none; margin: 0; padding: 8px 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
     .batch-item { display: flex; align-items: center; gap: 10px; border: 1px solid #2a2a32;
@@ -79,6 +84,37 @@
     .primary-btn:hover { background: #3458e6; }
     .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+
+    /* 转换模式选择 + 自定义参数 */
+    .mode-row { display: flex; align-items: center; gap: 8px; padding: 8px 18px 0; flex-wrap: wrap; }
+    .mode-label { font-size: 12px; color: #8a8a94; flex: 0 0 auto; }
+    .mode-row select { flex: 1; min-width: 190px; background: #22222a; color: #d6d6dc;
+      border: 1px solid #2c2c34; border-radius: 8px; padding: 6px 8px; font-size: 12px; }
+    .mode-btn { cursor: pointer; border: 1px solid #2c2c34; background: #22222a;
+      color: #d6d6dc; padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+    .mode-btn:hover { background: #2c2c34; }
+    .mode-editor { margin: 8px 18px 6px; padding: 12px; border: 1px solid #2a2a32;
+      border-radius: 10px; background: #1e1e24; display: flex; flex-direction: column; gap: 10px; }
+    .mode-field { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #c8c8d0; }
+    .mode-field > label { flex: 0 0 120px; color: #8a8a94; }
+    .mode-field input[type=text] { flex: 1; background: #16161c; border: 1px solid #2c2c34;
+      color: #e8e8ec; border-radius: 7px; padding: 6px 8px; font-size: 12px; }
+    .mode-field input[type=range] { flex: 1; accent-color: #4d7cff; }
+    .mode-val { flex: 0 0 50px; text-align: right; color: #8a8a94; font-size: 11px; }
+    .mode-checks { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #c8c8d0; }
+    .mode-checks label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .mode-checks input { accent-color: #4d7cff; }
+    .mode-radios { display: flex; gap: 14px; }
+    .mode-radios label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .mode-radios input { accent-color: #4d7cff; }
+    .mode-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .mode-actions button { cursor: pointer; border: 1px solid #2c2c34; background: #22222a;
+      color: #d6d6dc; padding: 6px 14px; border-radius: 8px; font-size: 12px; }
+    .mode-actions button:hover { background: #2c2c34; }
+    .mode-actions button.danger { color: #e26b6b; }
+    .mode-actions button.danger:hover { background: #3a2226; }
+    .mode-editor input:disabled { opacity: 0.5; cursor: not-allowed; }
+    .mode-note { font-size: 11px; color: #7d7d88; }
     /* 右侧面板（剖面 + 关节 + 材质），每个子窗口可最小化 */
     #rightPanels { position: fixed; top: 14px; right: 14px; z-index: 12;
       display: flex; flex-direction: column; gap: 10px; align-items: flex-end; max-height: calc(100vh - 28px); }
@@ -131,6 +167,10 @@
     .joint-label { color: #c8c8d0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .joint-slider { width: 100%; accent-color: #4d7cff; }
     .joint-value { color: #8a8a94; font-size: 11px; text-align: right; }
+    .joint-dof-row { display: grid; grid-template-columns: 28px 1fr 38px; gap: 6px; align-items: center; }
+    .joint-dof-label { color: #7d7d88; font-size: 11px; }
+    .joint-warnings { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .joint-warning { color: #e0b34a; font-size: 11px; line-height: 1.4; }
 
     /* 剖面面板 */
     .section-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #c8c8d0; margin: 4px 0; }
@@ -176,6 +216,16 @@
     .mat-import { border: 1px dashed #3a3a44; background: transparent; color: #8a8a94;
       border-radius: 7px; cursor: pointer; height: 42px; font-size: 11px; }
     .mat-import:hover { border-color: #4d7cff; color: #d6d6dc; background: rgba(77,124,255,0.08); }
+    .history-box { border-top: 1px solid #26262e; padding: 8px 18px 4px; }
+    .history-head { font-size: 12px; color: #8a8a94; margin-bottom: 6px; }
+    .history-list { max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+    .history-row { display: grid; grid-template-columns: 1fr auto 20px auto; gap: 8px; align-items: center; font-size: 11px; color: #c8c8d0; }
+    .h-file { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .h-preset { color: #8a8a94; }
+    .h-ok.ok { color: #5ad08a; }
+    .h-ok.err { color: #e06c6c; }
+    .h-meta { color: #8a8a94; white-space: nowrap; }
+    .history-empty { font-size: 11px; color: #7a7a84; }
   </style>
   <script type="importmap">
   {
@@ -205,6 +255,8 @@
       <button id="placeBtn">点击场地放置机器人</button>
       <button id="bgMatBtn">编辑场地材质</button>
       <button id="resetPlaceBtn">重置初始位置</button>
+      <button id="driveBtn">驾驶模式（WASD）</button>
+      <button id="fpvBtn">第一人称（FPV）</button>
     </div>
     </div>
   </aside>
@@ -234,6 +286,44 @@
         </div>
       </div>
     </div>
+    <div id="explodePanel" class="panel">
+      <div class="panel-head">
+        <div class="panel-title">爆炸视图</div>
+        <button class="panel-min" type="button" title="最小化/展开">—</button>
+      </div>
+      <div class="panel-body">
+        <label class="section-toggle"><input type="checkbox" id="explodeToggle"> 启用爆炸视图</label>
+        <div class="section-modes">
+          <button data-explode-dir="radial" class="active">径向</button>
+          <button data-explode-dir="x">X</button>
+          <button data-explode-dir="y">Y</button>
+          <button data-explode-dir="z">Z</button>
+        </div>
+        <div class="section-row">
+          <span>强度</span>
+          <input type="range" id="explodeStrength" min="0" max="1" step="0.01" value="0.5">
+          <span class="section-val" id="explodeStrengthVal">50%</span>
+        </div>
+      </div>
+    </div>
+    <div id="fpvPanel" class="panel">
+      <div class="panel-head">
+        <div class="panel-title">FPV 相机</div>
+        <button class="panel-min" type="button" title="最小化/展开">—</button>
+      </div>
+      <div class="panel-body">
+        <div class="section-modes">
+          <button id="fpvSetAnchor" type="button" title="把锚点设为当前选中零件的几何中心">锚点 ← 选中零件</button>
+          <button id="fpvReset" type="button" title="恢复默认（模型中心 72% 高度，朝 +Z）">重置</button>
+        </div>
+        <div class="section-row"><span>X</span><input type="range" id="fpvPosX"><span class="section-val" id="fpvPosXVal">0.00</span></div>
+        <div class="section-row"><span>Y</span><input type="range" id="fpvPosY"><span class="section-val" id="fpvPosYVal">0.00</span></div>
+        <div class="section-row"><span>Z</span><input type="range" id="fpvPosZ"><span class="section-val" id="fpvPosZVal">0.00</span></div>
+        <div class="section-row"><span>偏航</span><input type="range" id="fpvDirYaw" min="0" max="360" step="1" value="0"><span class="section-val" id="fpvDirYawVal">0°</span></div>
+        <div class="section-row"><span>俯仰</span><input type="range" id="fpvDirPitch" min="-89" max="89" step="1" value="0"><span class="section-val" id="fpvDirPitchVal">0°</span></div>
+        <div style="font-size:11px;color:#8a8a94;line-height:1.5;margin-top:6px;">X/Y/Z 为世界系位置偏移（米）；偏航/俯仰为视角方向。第三人称下青色球 + 黄色箭头即 FPV 眼位与朝向。</div>
+      </div>
+    </div>
     <div id="jointPanel" class="panel">
       <div class="panel-head">
         <div class="panel-title">可动关节</div>
@@ -255,17 +345,57 @@
       <div class="batch-head">
         <div>
           <div class="batch-title">批量导出 / 转换</div>
-          <div class="batch-sub">勾选要转换的工程（读取 assets/export/ 里的 .stl / .step）</div>
+          <div class="batch-sub">点「选择文件」加入 .stl / .step 工程，再勾选转换</div>
         </div>
         <button id="batchClose" class="icon-btn">×</button>
       </div>
       <div class="batch-toolbar">
+        <button id="batchPickFiles" class="pick-btn">选择文件</button>
         <button id="batchSelectAll">全选</button>
         <button id="batchSelectNone">清空</button>
         <button id="batchRefresh">刷新</button>
         <span class="batch-status" id="batchStatus"></span>
       </div>
+
+      <div class="mode-row">
+        <label class="mode-label" for="modeSelect">转换模式</label>
+        <select id="modeSelect"></select>
+        <button id="modeNew" class="mode-btn" type="button">新建自定义</button>
+      </div>
+      <div id="modeEditor" class="mode-editor" style="display:none">
+        <div class="mode-field">
+          <label for="modeName">名称</label>
+          <input id="modeName" type="text" placeholder="自定义模式名称" />
+        </div>
+        <div class="mode-field">
+          <label for="modeAngular">角度偏差（弧度）</label>
+          <input id="modeAngular" type="range" min="0.05" max="1" step="0.01" value="0.5" />
+          <span id="modeAngularVal" class="mode-val">0.50</span>
+        </div>
+        <div class="mode-checks">
+          <label><input id="modeRadiusAdaptive" type="checkbox" checked /> 半径自适应细分</label>
+          <label><input id="modeSizeAdaptive" type="checkbox" /> 按零件尺寸自适应精修</label>
+          <label><input id="modeDedup" type="checkbox" checked /> 几何去重</label>
+        </div>
+        <div class="mode-field">
+          <label>压缩方式</label>
+          <div class="mode-radios">
+            <label><input type="radio" name="modeCompression" value="meshopt" checked /> Meshopt（无损）</label>
+            <label><input type="radio" name="modeCompression" value="draco" /> Draco（高压缩）</label>
+            <label><input type="radio" name="modeCompression" value="none" /> 不压缩</label>
+          </div>
+        </div>
+        <div class="mode-actions">
+          <button id="modeSave" type="button">保存</button>
+          <button id="modeDelete" type="button" class="danger">删除</button>
+        </div>
+        <div class="mode-note">内置预设只读；点「新建自定义」复制当前参数为可编辑模式。</div>
+      </div>
       <ul id="batchList" class="batch-list"></ul>
+      <div class="history-box">
+        <div class="history-head">转换历史</div>
+        <div id="historyList" class="history-list"></div>
+      </div>
       <div class="batch-foot">
         <span class="batch-summary" id="batchSummary"></span>
         <button id="batchBuild" class="primary-btn">转换选中</button>
@@ -275,7 +405,10 @@
 
   <div id="loading">加载中…</div>
   <div class="hint">左键旋转 / 滚轮缩放 / 右键平移 · 拖动关节高亮环旋转 · 拖拽 .glb / .stl 到窗口也可加载</div>
+  <div id="driveHint" class="drive-hint" style="display:none">驾驶模式：W/↑ 前进 · S/↓ 后退 · A/← 左移 · D/→ 右移 · 空格 跳跃 · 鼠标左键环绕视角 · 滚轮缩放 · 速度 <span id="driveSpeed">0.0</span> m/s</div>
+  <div id="fpvHint" class="drive-hint" style="display:none">第一人称：W/↑ 前进 · S/↓ 后退 · A/← 左移 · D/→ 右移 · 空格 跳跃 · 鼠标左键拖动看四周 · 速度 <span id="fpvSpeed">0.0</span> m/s</div>
   <input id="fileInput" type="file" accept=".glb,.gltf,.stl" hidden />
+  <input id="batchFileInput" type="file" accept=".stl,.step,.stp" multiple hidden />
   <script type="module" src="./main.js"></script>
   <script type="module" src="./batch.js"></script>
   <script type="module" src="./viewer/panels.js"></script>

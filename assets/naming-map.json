@@ -6588,5 +6588,70 @@
     "slug": "0904-assengen4",
     "name": "0904 Assen GEN4",
     "translation": "0904 Assen GEN4"
+  },
+  "step-node::P16.33减速箱固定端": {
+    "slug": "p16.33-fixed-end-of-speedbox",
+    "name": "P16.33 Fixed End Of Speedbox",
+    "translation": "P16.33 Fixed end of speedbox"
+  },
+  "step-node::3508电机转子": {
+    "slug": "3508-power-rotors",
+    "name": "3508 Power Rotors",
+    "translation": "3508 power rotors"
+  },
+  "step-node::齿圈60×0.8x-0.35": {
+    "slug": "gear-60x0.8x0.35",
+    "name": "Gear 60x0.8x0.35",
+    "translation": "Gear 60x0.8x0.35"
+  },
+  "step-node::太阳轮15×0.6x0.13": {
+    "slug": "solar-wheel-15x0.6x0.13",
+    "name": "Solar Wheel 15x0.6x0.13",
+    "translation": "Solar wheel 15x0.6x0.13"
+  },
+  "step-node::行星轮49×0.6x-0.13": {
+    "slug": "planetary-wheel-49x0.6x-0.13",
+    "name": "Planetary Wheel 49x0.6x 0.13",
+    "translation": "Planetary wheel 49x0.6x-0.13"
+  },
+  "step-node::行星轮12×0.8x0.35": {
+    "slug": "planetary-wheel-12x0.8x0.35",
+    "name": "Planetary Wheel 12x0.8x0.35",
+    "translation": "Planetary wheel 12x0.8x0.35"
+  },
+  "step-node::JA025XPO": {
+    "slug": "ja025xpo",
+    "name": "Ja025xpo",
+    "translation": "JA025XPO"
+  },
+  "step-node::P16.33减速箱输出端": {
+    "slug": "p16.33-deviation-box-output-end",
+    "name": "P16.33 Deviation Box Output End",
+    "translation": "P16.33 Deviation box output end"
+  },
+  "step-node::双联4x6x8花篮": {
+    "slug": "double-4x6x8-basket",
+    "name": "Double 4x6x8 Basket",
+    "translation": "Double 4x6x8 basket"
+  },
+  "step-node::61.9x50x8内36外45碗组轴承": {
+    "slug": "61.9x50x8-36-extra-45-bowl-bearings",
+    "name": "61.9x50x8 36 Extra 45 Bowl Bearings",
+    "translation": "61.9x50x8 36 extra 45 bowl bearings"
+  },
+  "step-node::P16.33减速箱端盖": {
+    "slug": "p16.33-end-cap-of-the-speedbox",
+    "name": "P16.33 End Cap Of The Speedbox",
+    "translation": "P16.33 End cap of the speedbox"
+  },
+  "step-node::P16.33helios装饰": {
+    "slug": "p16.33-helios-decoration",
+    "name": "P16.33 Helios Decoration",
+    "translation": "P16.33 Helios Decoration"
+  },
+  "step-node::Assem_helios_gear_P16.33": {
+    "slug": "assem-helios-gear-p16.33",
+    "name": "Assem Helios Gear P16.33",
+    "translation": "Assem_helios_gear_P16.33"
   }
 }

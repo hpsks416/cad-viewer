@@ -41,6 +41,31 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _handle_upload(self):
+        """POST /api/upload?filename=<name>，body 为原始文件字节，流式写入 assets/export/。"""
+        try:
+            qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            filename = urllib.parse.unquote((qs.get("filename") or [""])[0])
+            filename = os.path.basename(filename).strip()
+            if not filename:
+                self._send(400, {"ok": False, "error": "missing filename"})
+                return
+            dest_dir = pipeline.ASSETS
+            os.makedirs(dest_dir, exist_ok=True)
+            dest = os.path.join(dest_dir, filename)
+            length = int(self.headers.get("Content-Length") or 0)
+            remaining = length
+            with open(dest, "wb") as f:
+                while remaining > 0:
+                    chunk = self.rfile.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    remaining -= len(chunk)
+            self._send(200, {"ok": True, "filename": filename})
+        except Exception as e:
+            self._send(500, {"ok": False, "error": str(e)})
+
     def do_GET(self):
         path = urllib.parse.urlparse(self.path).path
         if path == "/api/files":
@@ -59,6 +84,18 @@ class Handler(BaseHTTPRequestHandler):
             except Exception:
                 self._send(200, {})
             return
+        if path == "/api/convert-presets":
+            try:
+                self._send(200, pipeline.load_convert_presets())
+            except Exception as e:
+                self._send(500, {"error": str(e)})
+            return
+        if path == "/api/convert-history":
+            try:
+                self._send(200, pipeline.load_history())
+            except Exception as e:
+                self._send(500, {"error": str(e)})
+            return
         if path == "/api/manifest":
             try:
                 with open(os.path.join(ROOT, "models", "manifest.json"), encoding="utf-8") as f:
@@ -70,6 +107,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urllib.parse.urlparse(self.path).path
+        if path == "/api/upload":
+            self._handle_upload()
+            return
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length) if length else b""
         try:
@@ -81,8 +121,23 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 files = data.get("files") or None
                 preview = bool(data.get("preview", True))
-                res = pipeline.build(files=files, preview=preview)
-                self._send(200, {"ok": True, "models": res["models"], "results": res["results"]})
+                mode = data.get("mode")
+                res = pipeline.build(files=files, preview=preview, mode=mode)
+                self._send(200, {"ok": True, **res})
+            except Exception as e:
+                self._send(500, {"ok": False, "error": str(e)})
+            return
+        if path == "/api/convert-presets":
+            try:
+                presets = data.get("presets")
+                custom = data.get("custom")
+                cur = pipeline.load_convert_presets()
+                if isinstance(presets, list):
+                    cur["presets"] = presets
+                if isinstance(custom, list):
+                    cur["custom"] = custom
+                pipeline.save_convert_presets(cur)
+                self._send(200, {"ok": True, **cur})
             except Exception as e:
                 self._send(500, {"ok": False, "error": str(e)})
             return

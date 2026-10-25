@@ -6,14 +6,15 @@
 //! ctranslate2 / sentencepiece 的 Python 3.10+。
 
 use axum::{
-    extract::State,
+    body::Bytes,
+    extract::{Query, State},
     http::{header, StatusCode, Uri},
     response::{IntoResponse, Response},
     routing::{get, post},
     Json, Router,
 };
 use serde_json::{json, Value};
-use std::{path::PathBuf, process::Command, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, process::Command, sync::Arc};
 
 /// 仓库根目录（rust-server 的上一级）。
 fn repo_root() -> PathBuf {
@@ -141,6 +142,55 @@ async fn post_state(State(st): State<AppState>, Json(body): Json<Value>) -> Json
     Json(json!({"ok": true}))
 }
 
+/// GET /api/convert-presets —— 读取转换预设（内置 + 自定义）。
+async fn get_convert_presets(State(st): State<AppState>) -> Json<Value> {
+    Json(read_json(&st.root.join("assets").join("convert-presets.json")))
+}
+
+/// POST /api/convert-presets —— 保存转换预设（内置 + 自定义）。
+async fn post_convert_presets(State(st): State<AppState>, Json(body): Json<Value>) -> Json<Value> {
+    let p = st.root.join("assets").join("convert-presets.json");
+    let mut cur = read_json(&p);
+    if !cur.is_object() {
+        cur = json!({"presets": [], "custom": []});
+    }
+    if let Some(presets) = body.get("presets").and_then(|v| v.as_array()).cloned() {
+        cur["presets"] = Value::Array(presets);
+    }
+    if let Some(custom) = body.get("custom").and_then(|v| v.as_array()).cloned() {
+        cur["custom"] = Value::Array(custom);
+    }
+    let tmp = st.root.join("assets").join("convert-presets.json.tmp");
+    if write_json(&tmp, &cur).is_ok() {
+        let _ = std::fs::rename(&tmp, &p);
+    }
+    cur["ok"] = json!(true);
+    Json(cur)
+}
+
+/// POST /api/upload?filename=<name> —— body 为原始文件字节，写入 assets/export/。
+async fn post_upload(
+    State(st): State<AppState>,
+    Query(q): Query<HashMap<String, String>>,
+    body: Bytes,
+) -> Result<Json<Value>, StatusCode> {
+    let filename = q.get("filename").cloned().unwrap_or_default();
+    let name = std::path::Path::new(&filename)
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("")
+        .to_string();
+    if name.is_empty() {
+        return Ok(Json(json!({"ok": false, "error": "missing filename"})));
+    }
+    let dest = st.root.join("assets").join("export").join(&name);
+    if let Some(parent) = dest.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    std::fs::write(&dest, &body).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(json!({"ok": true, "filename": name})))
+}
+
 /// GET /api/files —— 列出 assets/export/ 下所有 STL/STEP 及命名/转换状态。
 async fn get_files(State(st): State<AppState>) -> Json<Value> {
     let export = st.root.join("assets").join("export");
@@ -217,6 +267,7 @@ async fn post_build(
         })
         .unwrap_or_default();
     let preview = body.get("preview").and_then(|v| v.as_bool()).unwrap_or(true);
+    let mode = body.get("mode").cloned();
 
     let python = std::env::var("CAD_VIEWER_PYTHON").unwrap_or_else(|_| "python".to_string());
     let script = st.root.join("tools").join("build.py");
@@ -229,6 +280,12 @@ async fn post_build(
     }
     if !preview {
         cmd.arg("--no-preview");
+    }
+    if let Some(mode) = mode {
+        if !mode.is_null() {
+            let m = serde_json::to_string(&mode).unwrap_or_else(|_| "null".to_string());
+            cmd.arg("--mode").arg(m);
+        }
     }
     cmd.current_dir(&*st.root);
 
@@ -277,6 +334,8 @@ async fn main() {
         .route("/api/manifest", get(get_manifest))
         .route("/api/state", get(get_state).post(post_state))
         .route("/api/build", post(post_build))
+        .route("/api/convert-presets", get(get_convert_presets).post(post_convert_presets))
+        .route("/api/upload", post(post_upload))
         .fallback(static_handler)
         .with_state(state);
 

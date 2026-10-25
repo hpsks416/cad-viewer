@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot name="sample">
+  <!-- 示例：肩(revolute 绕Z) → 腕(revolute 绕X，origin 带 rpy) → 末端(prismatic) -->
+  <link name="base"/>
+  <link name="arm"/>
+  <link name="wrist"/>
+  <link name="end"/>
+
+  <joint name="shoulder" type="revolute">
+    <parent link="base"/>
+    <child link="arm"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.57" upper="1.57" effort="10" velocity="1"/>
+  </joint>
+
+  <joint name="wrist" type="revolute">
+    <parent link="arm"/>
+    <child link="wrist"/>
+    <origin xyz="0 0 0.2" rpy="1.5708 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.785" upper="0.785" effort="5" velocity="1"/>
+  </joint>
+
+  <joint name="end" type="prismatic">
+    <parent link="wrist"/>
+    <child link="end"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="0" upper="0.03" effort="5" velocity="0.01"/>
+  </joint>
+</robot>

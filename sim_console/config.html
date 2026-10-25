@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>仿真器配置（节点式）</title>
+<link rel="stylesheet" href="/vendor/litegraph/litegraph.css" />
+<style>
+  html, body { margin: 0; height: 100%; background: #1e1e1e; overflow: hidden; }
+  #header { position: fixed; top: 0; left: 0; right: 0; z-index: 30; height: 42px;
+    background: #16161a; border-bottom: 1px solid #2c2c34; display: flex; align-items: center; gap: 10px; padding: 0 12px; }
+  #header .brand { font: 13px system-ui; font-weight: 600; color: #e8e8ec; }
+  #header .tabs { display: flex; gap: 4px; }
+  #header .tab { background: #22222a; color: #c8c8d0; border: 1px solid #2c2c34;
+    border-radius: 6px; padding: 5px 14px; font: 12px system-ui; cursor: pointer; }
+  #header .tab.active { background: #2a4bd7; border-color: #2a4bd7; color: #fff; }
+  #header select { background: #22222a; color: #e8e8ec; border: 1px solid #2c2c34;
+    border-radius: 6px; padding: 5px 8px; font: 12px system-ui; }
+  #header .spacer { flex: 1; }
+  .toolbtn { background: #22222a; color: #e8e8ec; border: 1px solid #2c2c34; border-radius: 6px;
+    padding: 5px 10px; font: 12px system-ui; cursor: pointer; }
+  .toolbtn:hover { background: #2c2c34; }
+  #status { position: fixed; top: 50px; left: 12px; z-index: 30; color: #8a8a94; font: 12px system-ui;
+    background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 6px; }
+  #graphs { position: absolute; inset: 0; top: 42px; }
+  #graphs canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div id="header">
+  <span class="brand">仿真器配置</span>
+  <div class="tabs" id="tabs"></div>
+  <select id="addSelect" title="添加节点（Shift+A）">
+    <option value="">＋ 添加节点</option>
+  </select>
+  <div class="spacer"></div>
+  <button id="frameSel" class="toolbtn" title="框选当前节点（Home）">框选</button>
+  <button id="fitBtn" class="toolbtn" title="显示全局">显示全局</button>
+  <button id="delSel" class="toolbtn" title="删除选中（X / Delete）">删除选中</button>
+</div>
+<div id="status">加载 litegraph.js …</div>
+<div id="graphs"></div>
+<script src="/vendor/litegraph/litegraph.js"></script>
+<script>
+const statusEl = document.getElementById('status');
+if (typeof LiteGraph === 'undefined') {
+  statusEl.innerHTML = 'litegraph.js 未加载。请先在本机跑一次 <b>download-litegraph.ps1</b> 下载到 vendor/litegraph/，再刷新本页。';
+} else {
+  boot();
+}
+
+function boot() {
+  statusEl.textContent = '初始化…';
+
+  const GROUP_COLORS = { mechanical: '#2a6bd7', electronic: '#c7831e', vision: '#2e8b57' };
+  const OUT_COLOR = '#c73b3b';
+  const GENERIC_COLOR = '#6a5acd';
+
+  const GROUPS = [
+    { id: 'mechanical', title: '机械', out: '机械输出', layers: [
+      { id: 'robot_model', title: '模型', widgets: [
+        ['mode', 'combo', '模式', 'glb', ['glb', 'urdf']],
+        ['glb', 'text', 'glb路径', ''], ['urdf', 'text', 'urdf路径', ''] ] },
+      { id: 'materials', title: '材质', widgets: [
+        ['preset', 'combo', '预设', 'carbon-fiber', ['carbon-fiber', 'aluminum-6061', 'plastic']] ] },
+      { id: 'joints', title: '关节', widgets: [
+        ['mode', 'combo', '模式', 'joints-json', ['joints-json', 'urdf']],
+        ['source', 'text', '来源路径', ''] ] },
+      { id: 'video_transmission', title: '图传', widgets: [
+        ['anchor_part', 'text', '锚点零件', ''],
+        ['yaw', 'number', '偏航(rad)', 0], ['pitch', 'number', '俯仰(rad)', 0] ] },
+    ]},
+    { id: 'electronic', title: '电控', out: '电控输出', layers: [
+      { id: 'motion_controller', title: '运动控制器', widgets: [
+        ['chassis', 'combo', '底盘', 'mecanum', ['mecanum', 'steering']],
+        ['gimbal_mode', 'combo', '云台模式', 'vision', ['vision', 'direct']],
+        ['gimbal_max_rate', 'number', '云台角速度', 3.0] ] },
+      { id: 'computer_framework', title: '上下位机', widgets: [
+        ['protocol', 'combo', '协议', 'tcp', ['tcp', 'udp', 'shm']],
+        ['image_port', 'number', '图像端口', 7666], ['command_port', 'number', '指令端口', 7667] ] },
+      { id: 'power_control', title: '功率控制', widgets: [
+        ['power_mode', 'combo', '模式', 'referee', ['referee', 'custom']],
+        ['total_power', 'number', '总功率(W)', 80], ['buffer_energy', 'number', '缓冲能量(J)', 250] ] },
+    ]},
+    { id: 'vision', title: '视觉', out: '视觉输出', layers: [
+      { id: 'navigation', title: '导航', widgets: [
+        ['nav_mode', 'combo', '模式', 'none', ['none', 'waypoint', 'slam']] ] },
+      { id: 'auto_aim', title: '自瞄', widgets: [
+        ['plugin', 'text', '插件名', ''] ] },
+    ]},
+  ];
+
+  const groups = [];
+  let cfg = {};
+  let active = 0;
+
+  function makeLayerNode(layer, color) {
+    const cls = function () {
+      this.properties = { kind: 'layer', layerId: layer.id, layerDef: layer, useDefault: true };
+      this.addOutput('out', 'config');
+      this.addWidget('toggle', '缺省', true, (v) => {
+        this.properties.useDefault = v;
+        this.widgets.forEach((w, i) => { if (i >= 1) w.disabled = v; });
+        this.setDirtyCanvas(true); save();
+      });
+      layer.widgets.forEach(w => {
+        const [key, type, label, def, opts] = w;
+        if (type === 'combo') this.addWidget('combo', label, def, (v) => { this.properties[key] = v; save(); }, { values: opts });
+        else this.addWidget(type, label, def, (v) => { this.properties[key] = v; save(); });
+      });
+      this.widgets.forEach((w, i) => { if (i >= 1) w.disabled = true; });
+    };
+    cls.title = layer.title;
+    cls.color = color;
+    return cls;
+  }
+
+  function makeGenericNode() {
+    const cls = function () {
+      this.properties = { kind: 'generic', name: 'custom_layer' };
+      this.addOutput('out', 'config');
+      this.addWidget('text', '名称', 'custom_layer', (v) => { this.properties.name = v; save(); });
+      this.addWidget('text', '值(JSON)', '{"mode":"custom"}', (v) => { this.properties.value = v; save(); });
+    };
+    cls.title = '配置节点';
+    cls.color = GENERIC_COLOR;
+    return cls;
+  }
+
+  function makeOutputNode(title) {
+    const cls = function () { this.properties = { kind: 'output' }; this.addInput('in', 'config'); };
+    cls.title = title;
+    cls.color = OUT_COLOR;
+    return cls;
+  }
+
+  function collectConfig() {
+    const out = {};
+    groups.forEach(G => {
+      G.graph._nodes.forEach(node => {
+        const p = node.properties || {};
+        if (p.kind === 'output') return;
+        if (p.kind === 'generic') {
+          const name = (node.widgets[0] && node.widgets[0].value) || 'unnamed';
+          let val = {};
+          try { val = JSON.parse(node.widgets[1] && node.widgets[1].value || '{}'); } catch (e) { val = { mode: 'custom' }; }
+          out[name] = val;
+        } else if (p.kind === 'layer') {
+          const o = { mode: p.useDefault ? 'default' : 'custom' };
+          if (!p.useDefault) {
+            p.layerDef.widgets.forEach((w, wi) => {
+              const widget = node.widgets[wi + 1];
+              if (widget && widget.value != null) o[w[0]] = widget.value;
+            });
+          }
+          out[p.layerId] = o;
+        }
+      });
+    });
+    return out;
+  }
+
+  function save() {
+    fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(collectConfig()) })
+      .then(() => { statusEl.textContent = '已保存配置'; })
+      .catch(() => { statusEl.textContent = '保存失败（桥接未启动？）'; });
+  }
+
+  // ---- 建 3 个域 ----
+  const tabsEl = document.getElementById('tabs');
+  const graphsEl = document.getElementById('graphs');
+  const addSelect = document.getElementById('addSelect');
+  const addRegistry = [];   // {label, gi, typeName}
+
+  LiteGraph.registerNodeType('config/generic', makeGenericNode());
+  addRegistry.push({ label: '通用 · 配置节点', gi: -1, typeName: 'config/generic' });
+
+  GROUPS.forEach((def, gi) => {
+    const G = { def, outNode: null };
+    groups.push(G);
+
+    const tab = document.createElement('div');
+    tab.className = 'tab'; tab.textContent = def.title;
+    tab.addEventListener('click', () => switchGroup(gi));
+    tabsEl.appendChild(tab);
+    G.tab = tab;
+
+    const canvasEl = document.createElement('canvas');
+    canvasEl.id = 'group-' + def.id;
+    graphsEl.appendChild(canvasEl);
+    const graph = new LiteGraph.LGraph();
+    const canvas = new LiteGraph.LGraphCanvas('#' + canvasEl.id, graph);
+    canvasEl.style.display = 'none';
+    G.graph = graph; G.canvas = canvas; G.canvasEl = canvasEl;
+
+    LiteGraph.registerNodeType('out/' + def.id, makeOutputNode(def.out));
+    const out = LiteGraph.createNode('out/' + def.id);
+    out.pos = [700, 40];
+    graph.add(out);
+    G.outNode = out;
+
+    def.layers.forEach((layer, li) => {
+      const typeName = 'layer/' + def.id + '/' + li;
+      LiteGraph.registerNodeType(typeName, makeLayerNode(layer, GROUP_COLORS[def.id]));
+      const n = LiteGraph.createNode(typeName);
+      n.pos = [80, 40 + li * 130];
+      graph.add(n);
+      n.connect(0, out, 0);
+      addRegistry.push({ label: def.title + ' · ' + layer.title, gi, typeName });
+    });
+    graph.start();
+  });
+
+  // 填充添加下拉（optgroup 按域）
+  let lastGroup = '';
+  addRegistry.forEach(r => {
+    if (r.gi === -1) {
+      const og = document.createElement('optgroup'); og.label = '通用';
+      const o = document.createElement('option'); o.value = addRegistry.indexOf(r); o.textContent = r.label; og.appendChild(o);
+      addSelect.appendChild(og);
+    } else {
+      const gid = GROUPS[r.gi].title;
+      if (gid !== lastGroup) {
+        const og = document.createElement('optgroup'); og.label = gid; addSelect.appendChild(og);
+        lastGroup = gid;
+      }
+      const o = document.createElement('option'); o.value = addRegistry.indexOf(r); o.textContent = r.label;
+      addSelect.lastChild.appendChild(o);
+    }
+  });
+  addSelect.addEventListener('change', () => {
+    const r = addRegistry[parseInt(addSelect.value, 10)];
+    addSelect.value = '';
+    if (!r) return;
+    const gi = r.gi === -1 ? active : r.gi;
+    if (gi !== active) switchGroup(gi);
+    const G = groups[gi];
+    const n = LiteGraph.createNode(r.typeName);
+    n.pos = [80, 40 + G.graph._nodes.length * 130];
+    G.graph.add(n);
+    if (G.outNode && n.outputs && n.outputs.length) n.connect(0, G.outNode, 0);
+    save(); fitToView();
+  });
+
+  function switchGroup(i) {
+    active = i;
+    groups.forEach((G, gi) => {
+      G.tab.classList.toggle('active', gi === i);
+      G.canvasEl.style.display = gi === i ? '' : 'none';
+      if (gi === i) G.canvas.resize();
+    });
+    fitToView();
+  }
+
+  function fitToView() {
+    const G = groups[active];
+    const nodes = G.graph._nodes || [];
+    if (!nodes.length) return;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    nodes.forEach(n => {
+      const s = n.size || [200, 90];
+      minX = Math.min(minX, n.pos[0]); minY = Math.min(minY, n.pos[1]);
+      maxX = Math.max(maxX, n.pos[0] + s[0]); maxY = Math.max(maxY, n.pos[1] + s[1]);
+    });
+    frameNodes(G, minX, minY, maxX, maxY);
+  }
+
+  function fitToSelection() {
+    const G = groups[active];
+    const sel = G.canvas.selected_nodes || {};
+    const nodes = Object.values(sel);
+    if (!nodes.length) { fitToView(); return; }
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    nodes.forEach(n => {
+      const s = n.size || [200, 90];
+      minX = Math.min(minX, n.pos[0]); minY = Math.min(minY, n.pos[1]);
+      maxX = Math.max(maxX, n.pos[0] + s[0]); maxY = Math.max(maxY, n.pos[1] + s[1]);
+    });
+    frameNodes(G, minX, minY, maxX, maxY);
+  }
+
+  function frameNodes(G, minX, minY, maxX, maxY) {
+    const cw = G.canvasEl.clientWidth || window.innerWidth;
+    const ch = G.canvasEl.clientHeight || window.innerHeight;
+    const scale = Math.min(cw / ((maxX - minX) + 200), ch / ((maxY - minY) + 200), 1.0);
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    G.canvas.ds.scale = scale;
+    G.canvas.ds.offset = [cw / 2 - cx * scale, ch / 2 - cy * scale];
+    G.canvas.setDirty(true, true);
+  }
+
+  function deleteSelected() {
+    const G = groups[active];
+    const sel = G.canvas.selected_nodes || {};
+    Object.keys(sel).forEach(id => {
+      const node = sel[id];
+      if (node.properties && node.properties.kind === 'output') return;
+      G.graph.remove(node);
+    });
+    save(); G.canvas.setDirty(true, true);
+  }
+
+  document.getElementById('fitBtn').addEventListener('click', fitToView);
+  document.getElementById('frameSel').addEventListener('click', fitToSelection);
+  document.getElementById('delSel').addEventListener('click', deleteSelected);
+  window.addEventListener('resize', () => { const G = groups[active]; if (G) G.canvas.resize(); });
+
+  // 温和缩放 + Delete 后保存
+  groups.forEach(G => {
+    G.canvasEl.addEventListener('wheel', (e) => {
+      e.preventDefault(); e.stopImmediatePropagation();
+      const factor = e.deltaY > 0 ? 1.06 : 1 / 1.06;
+      const rect = G.canvasEl.getBoundingClientRect();
+      G.canvas.ds.changeScale(G.canvas.ds.scale * factor, [e.clientX - rect.left, e.clientY - rect.top]);
+      G.canvas.setDirty(true, true);
+    }, { passive: false, capture: true });
+    G.canvasEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') setTimeout(save, 50);
+    });
+  });
+
+  // Blender 快捷键（全局）
+  window.addEventListener('keydown', (e) => {
+    if (e.shiftKey && (e.key === 'A' || e.key === 'a')) { e.preventDefault(); addSelect.focus(); }
+    else if (e.key === 'x' || e.key === 'X') { e.preventDefault(); deleteSelected(); }
+    else if (e.key === 'Home' || e.key === '.') { e.preventDefault(); fitToSelection(); }
+  });
+
+  // 载入配置
+  fetch('/api/config', { cache: 'no-store' }).then(r => r.json()).then(c => {
+    cfg = c || {};
+    groups.forEach(G => {
+      G.def.layers.forEach(layer => {
+        const saved = cfg[layer.id] || {};
+        const node = G.graph._nodes.find(n => n.properties && n.properties.kind === 'layer' && n.properties.layerId === layer.id);
+        if (!node) return;
+        node.properties.useDefault = saved.mode === 'default';
+        if (node.widgets[0]) node.widgets[0].value = node.properties.useDefault;
+        layer.widgets.forEach((w, wi) => {
+          if (saved[w[0]] != null && node.widgets[wi + 1]) node.widgets[wi + 1].value = saved[w[0]];
+        });
+        node.widgets.forEach((w, i) => { if (i >= 1) w.disabled = node.properties.useDefault; });
+      });
+    });
+    switchGroup(0);
+    statusEl.textContent = '已加载（Shift+A 加节点 · X 删除 · Home 框选 · 改动即保存）';
+  }).catch(() => {
+    switchGroup(0);
+    statusEl.textContent = '未读到 /api/config（桥接未启动？），从默认开始';
+  });
+}
+</script>
+</body>
+</html>

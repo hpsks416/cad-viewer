@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>3D 场景</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #141419; }
+  #hud { position: fixed; top: 10px; left: 12px; z-index: 10; display: flex; gap: 10px;
+    align-items: center; font: 12px system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  #status { color: #8a8a94; }
+  #modelSelect { background: #22222a; color: #e8e8ec; border: 1px solid #2c2c34;
+    border-radius: 6px; padding: 4px 6px; font-size: 12px; max-width: 260px; }
+</style>
+<script type="importmap">
+{ "imports": { "three": "/lib/three.module.js", "three/addons/": "/lib/" } }
+</script>
+</head>
+<body>
+<div id="hud">
+  <select id="modelSelect"></select>
+  <span id="status">加载中…</span>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x141419);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.05, 200);
+camera.position.set(3.5, 2.2, 4.5);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0, 0.5);
+controls.update();
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
+dirLight.position.set(5, 8, 5);
+scene.add(dirLight);
+scene.add(new THREE.GridHelper(20, 40, 0x2c2c34, 0x1b1b20));
+scene.add(new THREE.AxesHelper(1.0));
+
+const status = document.getElementById('status');
+const modelSelect = document.getElementById('modelSelect');
+
+// 线框盒兜底（模型加载失败时用）
+const fallbackBox = new THREE.Mesh(
+  new THREE.BoxGeometry(0.6, 0.9, 0.5),
+  new THREE.MeshBasicMaterial({ color: 0x4d7cff, wireframe: true })
+);
+scene.add(fallbackBox);
+let vehicleNode = fallbackBox;
+
+// 相机（锥形）+ 弹丸（黄球）标记
+const camMarker = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.24, 4), new THREE.MeshBasicMaterial({ color: 0x2ec4f0 }));
+scene.add(camMarker);
+const projGroup = new THREE.Group();
+scene.add(projGroup);
+const projGeo = new THREE.SphereGeometry(0.022, 8, 8);
+const projMat = new THREE.MeshBasicMaterial({ color: 0xffd166 });
+
+const loader = new GLTFLoader();
+loader.setMeshoptDecoder(MeshoptDecoder);
+const draco = new DRACOLoader();
+draco.setDecoderPath('/lib/libs/draco/');
+loader.setDRACOLoader(draco);
+
+const MODELS = [
+  { name: 'daedalus 整车（vehicle.glb）', url: '/models/vehicle.glb' },
+  { name: 'test-assembly', url: '/cviewer-models/test-assembly.glb' },
+  { name: '0904-assengen4', url: '/cviewer-models/0904-assengen4.glb' },
+  { name: 'steering-infantry-2023', url: '/cviewer-models/steering-infantry-2023.glb' },
+  { name: 'assem-helios-gear-p16.33', url: '/cviewer-models/assem-helios-gear-p16.33.glb' },
+];
+MODELS.forEach((m, i) => {
+  const o = document.createElement('option');
+  o.value = String(i);
+  o.textContent = m.name;
+  modelSelect.appendChild(o);
+});
+
+function loadModel(index) {
+  const m = MODELS[index];
+  status.textContent = `加载 ${m.name} …`;
+  status.style.color = '#8a8a94';
+  loader.load(m.url,
+    (gltf) => {
+      if (vehicleNode !== fallbackBox) scene.remove(vehicleNode);
+      scene.remove(fallbackBox);
+      vehicleNode = gltf.scene;
+      // 关掉视锥剔除：glb 大模型的包围球有时算不准，会导致「加载后一闪就消失」
+      vehicleNode.traverse((o) => { if (o.isMesh) o.frustumCulled = false; });
+      scene.add(vehicleNode);
+      status.textContent = `${m.name} 已加载（滚轮缩放 / 右键平移 / 左键旋转）`;
+      status.style.color = '#5ad08a';
+    },
+    undefined,
+    (err) => {
+      status.textContent = `${m.name} 加载失败：${(err && err.message) || ''}`;
+      status.style.color = '#e0b34a';
+    }
+  );
+}
+modelSelect.addEventListener('change', () => loadModel(parseInt(modelSelect.value, 10)));
+
+function setPose(obj, p, q) {
+  obj.position.set(p[0], p[1], p[2]);
+  obj.quaternion.set(q[0], q[1], q[2], q[3]);
+}
+function syncCount(group, geo, mat, n) {
+  while (group.children.length < n) group.add(new THREE.Mesh(geo, mat));
+  while (group.children.length > n) group.remove(group.children[group.children.length - 1]);
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/scene', { cache: 'no-store' });
+    const d = await r.json();
+    if (!d.ready && d.vehicle === undefined) {
+      status.textContent = '等待 3D 状态流…（daedalus 需是支持 7670 状态流的新版）';
+      status.style.color = '#e06c6c';
+      return;
+    }
+    if (d.vehicle) setPose(vehicleNode, d.vehicle.p, d.vehicle.q);
+    if (d.camera) setPose(camMarker, d.camera.p, d.camera.q);
+    const projs = d.projectiles || [];
+    syncCount(projGroup, projGeo, projMat, projs.length);
+    projs.forEach((p, i) => setPose(projGroup.children[i], [p[0], p[1], p[2]], [p[3], p[4], p[5], p[6]]));
+    status.textContent = `场景 t=${(d.t || 0).toFixed(2)}s · 弹丸 ${projs.length}`;
+    status.style.color = '#5ad08a';
+  } catch (e) {
+    status.textContent = '桥接不可达';
+    status.style.color = '#e06c6c';
+  }
+}
+setInterval(poll, 100);
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+window.addEventListener('resize', () => {
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// 默认先加载整车模型
+loadModel(0);
+</script>
+</body>
+</html>
